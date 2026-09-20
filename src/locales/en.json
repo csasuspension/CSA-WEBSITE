@@ -1,0 +1,17 @@
+{
+  "shop": "Shop",
+  "garage": "My garage",
+  "warranty": "Register warranty",
+  "claims": "Claims & tracking",
+  "promotions": "Benefits",
+  "admin": "Admin",
+  "search": "Search products, vehicle or product code",
+  "cart": "Cart",
+  "add": "Add to cart",
+  "total": "Total",
+  "checkout": "Checkout",
+  "all": "All vehicles",
+  "fit": "Fits",
+  "empty": "Your cart is empty",
+  "login": "Sign in"
+}
