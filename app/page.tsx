@@ -5,7 +5,8 @@ import {
   BadgeCheck, Car, CheckCircle2, ChevronRight, CircleGauge, ClipboardCheck,
   CreditCard, FileImage, Gift, Heart, LayoutDashboard, LogOut,
   Menu, Minus, PackageCheck, Phone, Plus, QrCode, Search, ShieldCheck,
-  ShoppingBag, SlidersHorizontal, Sparkles, UserRound, Wrench, X,
+  ShoppingBag, SlidersHorizontal, Sparkles, UserRound, Wrench, X, MapPin,
+  FileText, Info, Newspaper, PlayCircle, CircleHelp, Briefcase, Mail, Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,14 +18,21 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { saveEvent } from "@/src/api/events";
 import { SiteFooter } from "@/src/components/SiteFooter";
 import { VehicleFinderSelect } from "@/src/components/VehicleFinderSelect";
+import { PublicPage } from "@/src/components/PublicPages";
+import { InternalSystem } from "@/src/components/InternalSystem";
 import { products } from "@/src/data/products";
 import { translations } from "@/src/locales";
 import type { Lang, Product, View } from "@/src/types/portal";
 
 const nav: { id: View; icon: typeof ShoppingBag }[] = [
-  { id:"shop", icon:ShoppingBag }, { id:"garage", icon:Car },
-  { id:"warranty", icon:ShieldCheck }, { id:"claims", icon:ClipboardCheck },
-  { id:"promotions", icon:Gift }, { id:"admin", icon:LayoutDashboard },
+  { id:"shop", icon:ShoppingBag }, { id:"member", icon:UserRound },
+  { id:"my-products", icon:Package }, { id:"warranty", icon:ShieldCheck },
+  { id:"claims", icon:ClipboardCheck }, { id:"promotions", icon:Gift },
+  { id:"branches", icon:MapPin }, { id:"advice", icon:FileText },
+  { id:"about", icon:Info }, { id:"news", icon:Newspaper },
+  { id:"clips", icon:PlayCircle }, { id:"faq", icon:CircleHelp },
+  { id:"careers", icon:Briefcase }, { id:"contact", icon:Mail },
+  { id:"admin", icon:LayoutDashboard },
 ];
 const money = new Intl.NumberFormat("th-TH", { style:"currency", currency:"THB", maximumFractionDigits:0 });
 
@@ -39,6 +47,8 @@ export default function Home() {
   const [checkoutOpen,setCheckoutOpen] = useState(false);
   const [menuOpen,setMenuOpen] = useState(false);
   const [loggedIn,setLoggedIn] = useState(false);
+  const [catalog,setCatalog] = useState<Product[]>(products);
+  const [favorites,setFavorites] = useState<Set<string>>(new Set());
   const [toast,setToast] = useState("");
   const t = translations[lang];
 
@@ -46,6 +56,11 @@ export default function Home() {
     const saved = localStorage.getItem("csa-language");
     if (saved === "th" || saved === "en") setLang(saved);
   }, []);
+  useEffect(() => {
+    fetch("/api/products",{cache:"no-store"}).then(async response=>response.ok?response.json():Promise.reject()).then(data=>{
+      if(Array.isArray(data.products)&&data.products.length)setCatalog(data.products);
+    }).catch(()=>undefined);
+  }, [view]);
   useEffect(() => {
     const context = (document as unknown as {
       modelContext?: { registerTool: (tool: Record<string, unknown>, options?: { signal?: AbortSignal }) => void | Promise<void> };
@@ -99,9 +114,9 @@ export default function Home() {
     return () => lifecycle.abort();
   }, []);
   const changeLang = (next: Lang) => { setLang(next); localStorage.setItem("csa-language",next); };
-  const labels = useMemo(() => ({ shop:t.shop, garage:t.garage, warranty:t.warranty, claims:t.claims, promotions:t.promotions, admin:t.admin }), [t]);
-  const filtered = products.filter(p => (model === "ALL" || p.model === model) && (!query || `${p.name} ${p.model} ${p.id}`.toLowerCase().includes(query.toLowerCase())));
-  const lines = Object.entries(cart).filter(([,q]) => q > 0).map(([id,qty]) => ({ product:products.find(p => p.id === id)!, qty }));
+  const labels = useMemo<Record<View,string>>(() => lang==="th" ? ({shop:"หน้าหลักและสินค้า",member:"สมาชิก", "my-products":"สินค้าของฉัน",garage:"รถของฉัน",warranty:"ลงทะเบียนรับประกัน",claims:"เคลมและติดตาม",promotions:"โปรโมชั่น",branches:"สาขาและตัวแทน",advice:"บทความแนะนำ",about:"เกี่ยวกับ CSA",news:"ข่าวสาร",clips:"CSA Clips",faq:"คำถามที่พบบ่อย",careers:"ร่วมงานกับเรา",contact:"ติดต่อเรา",profile:"โปรไฟล์",admin:"ระบบภายใน"}) : ({shop:"Home & products",member:"Member", "my-products":"My products",garage:"My garage",warranty:"Warranty",claims:"Claims",promotions:"Promotions",branches:"Dealers",advice:"Advice",about:"About CSA",news:"News",clips:"CSA Clips",faq:"FAQ",careers:"Careers",contact:"Contact",profile:"Profile",admin:"Internal system"}), [lang]);
+  const filtered = catalog.filter(p => (model === "ALL" || p.model === model) && (!query || `${p.name} ${p.model} ${p.modelNumber??""} ${p.id}`.toLowerCase().includes(query.toLowerCase())));
+  const lines = Object.entries(cart).filter(([,q]) => q > 0).map(([id,qty]) => ({ product:catalog.find(p => p.id === id)!, qty })).filter(line=>Boolean(line.product));
   const count = lines.reduce((s,l) => s+l.qty,0);
   const total = lines.reduce((s,l) => s+l.qty*l.product.price,0);
   const flash = (message:string) => { setToast(message); window.setTimeout(() => setToast(""),1800); };
@@ -113,16 +128,15 @@ export default function Home() {
     <header className="sticky top-0 z-40 bg-[#ffc400] text-black shadow-md">
       <div className="mx-auto flex h-[76px] max-w-[1600px] items-center px-4 sm:h-[88px] sm:px-7">
         <button className="flex items-center" onClick={() => go("shop")} aria-label="CSA home">
-          <span className="font-display text-[38px] italic tracking-[-.07em] sm:text-5xl">CSA</span>
-          <span className="ml-3 hidden border-l border-black/25 pl-3 text-[9px] font-black uppercase leading-tight tracking-[.16em] sm:block">High Performance<br/>Suspension</span>
+          <img src="/csa-logo.svg" alt="CSA High Performance Suspension" className="h-12 w-auto sm:h-14"/>
         </button>
         <nav className="mx-auto hidden items-center gap-7 text-sm font-black lg:flex">
-          {(["shop","warranty","claims","promotions"] as View[]).map(id=><button key={id} onClick={()=>go(id)} className={view===id?"underline decoration-2 underline-offset-8":"opacity-70 hover:opacity-100"}>{labels[id]}</button>)}
+          {(["shop","promotions","branches","advice","about"] as View[]).map(id=><button key={id} onClick={()=>go(id)} className={view===id?"underline decoration-2 underline-offset-8":"opacity-70 hover:opacity-100"}>{labels[id]}</button>)}
         </nav>
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <button className="header-icon" onClick={()=>setLoginOpen(true)} aria-label={t.login}><UserRound/></button>
+          <button className="header-icon" onClick={()=>loggedIn?go("profile"):setLoginOpen(true)} aria-label={t.login}><UserRound/></button>
           <button className="header-icon relative" onClick={()=>setCartOpen(true)} aria-label={t.cart}><ShoppingBag/>{count>0&&<span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-black px-1 text-[10px] text-white">{count}</span>}</button>
-          <button className="header-icon hidden sm:grid" aria-label="Sign out"><LogOut/></button>
+          {loggedIn&&<button onClick={()=>{setLoggedIn(false);flash(lang==="th"?"ออกจากระบบแล้ว":"Signed out")}} className="header-icon hidden sm:grid" aria-label="Sign out"><LogOut/></button>}
           <div className="ml-1 flex rounded-full bg-black p-1 text-[11px] font-black text-white">
             {(["th","en"] as Lang[]).map(x=><button key={x} onClick={()=>changeLang(x)} className={`grid h-7 w-8 place-items-center rounded-full ${lang===x?"bg-white text-black":""}`}>{x.toUpperCase()}</button>)}
           </div>
@@ -132,12 +146,13 @@ export default function Home() {
     </header>
 
     <main className="mx-auto min-w-0 max-w-[1600px]">
-        {view==="shop"&&<Shop lang={lang} t={t} model={model} setModel={setModel} products={filtered} add={add}/>}
+        {view==="shop"&&<Shop lang={lang} t={t} model={model} setModel={setModel} products={filtered} add={add} go={go} favorites={favorites} toggleFavorite={id=>setFavorites(current=>{const next=new Set(current);next.has(id)?next.delete(id):next.add(id);return next})}/>}
         {view==="garage"&&<Garage lang={lang}/>}
         {view==="warranty"&&<Warranty lang={lang} flash={flash}/>}
         {view==="claims"&&<Claims lang={lang} flash={flash}/>}
         {view==="promotions"&&<Promotions lang={lang}/>}
-        {view==="admin"&&<Admin lang={lang}/>}
+        {(["member","my-products","branches","advice","about","news","clips","faq","careers","contact","profile"] as View[]).includes(view)&&<PublicPage view={view} lang={lang} go={go}/>}
+        {view==="admin"&&<InternalSystem lang={lang}/>}
     </main>
 
     <MenuDrawer open={menuOpen} setOpen={setMenuOpen} lang={lang} query={query} setQuery={setQuery} labels={labels} go={go}/>
@@ -149,7 +164,7 @@ export default function Home() {
   </div>;
 }
 
-function Shop({lang,t,model,setModel,products,add}:{lang:Lang;t:any;model:string;setModel:(v:string)=>void;products:Product[];add:(v:string)=>void}) {
+function Shop({lang,t,model,setModel,products,add,go,favorites,toggleFavorite}:{lang:Lang;t:any;model:string;setModel:(v:string)=>void;products:Product[];add:(v:string)=>void;go:(v:View)=>void;favorites:Set<string>;toggleFavorite:(id:string)=>void}) {
   const [make,setMake]=useState("TOYOTA");
   const [chosen,setChosen]=useState(model==="ALL"?"HIACE 300":model);
   const [year,setYear]=useState("2024");
@@ -165,7 +180,7 @@ function Shop({lang,t,model,setModel,products,add}:{lang:Lang;t:any;model:string
       </div>
     </section>
     <section className="grid grid-cols-3 bg-black text-center">
-      {[[Wrench,lang==="th"?"โช้คอัพ":"SHOCKS"],[ShieldCheck,lang==="th"?"รับประกัน":"WARRANTY"],[BadgeCheck,lang==="th"?"ของแท้ CSA":"GENUINE CSA"]].map(([I,label],i)=>{const Icon=I as typeof Wrench;return <button key={label as string} className={`flex min-h-28 flex-col items-center justify-center gap-2 border-r border-white/10 px-2 text-xs font-black sm:text-base ${i===0?"border-t-4 border-t-[#ffc400] bg-white text-black":"text-white"}`}><Icon className="h-8 w-8"/>{label as string}</button>})}
+      {[[Wrench,lang==="th"?"โช้คอัพ":"SHOCKS",()=>document.getElementById("finder")?.scrollIntoView({behavior:"smooth"})],[ShieldCheck,lang==="th"?"รับประกัน":"WARRANTY",()=>go("warranty")],[BadgeCheck,lang==="th"?"ของแท้ CSA":"GENUINE CSA",()=>go("about")]].map(([I,label,action],i)=>{const Icon=I as typeof Wrench;return <button key={label as string} onClick={action as ()=>void} className={`flex min-h-28 flex-col items-center justify-center gap-2 border-r border-white/10 px-2 text-xs font-black sm:text-base ${i===0?"border-t-4 border-t-[#ffc400] bg-white text-black":"text-white"}`}><Icon className="h-8 w-8"/>{label as string}</button>})}
     </section>
     <section id="finder" className="bg-white px-5 py-12 text-black sm:px-10 sm:py-16">
       <div className="mx-auto max-w-4xl text-center"><h2 className="font-display text-4xl sm:text-5xl">{lang==="th"?"ค้นหาโช้คตามรุ่นรถ":"FIND PARTS FOR YOUR VEHICLE"}</h2><p className="mt-2 text-zinc-500">{lang==="th"?"ระบุข้อมูลรถ เพื่อดูสินค้าที่แนะนำ":"Select your vehicle to see compatible products"}</p></div>
@@ -182,7 +197,7 @@ function Shop({lang,t,model,setModel,products,add}:{lang:Lang;t:any;model:string
         <div className="relative h-44 overflow-hidden bg-black">
           <img src="/csa-ci.jpg" alt="" className="h-full w-full object-cover object-[70%_40%] opacity-65 transition duration-500 group-hover:scale-105"/>
           <span className="absolute left-4 top-4 bg-[#ffc400] px-2 py-1 text-[10px] font-black tracking-wider text-black">{p.tag}</span>
-          <button className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-black"><Heart className="h-4 w-4"/></button>
+          <button onClick={()=>toggleFavorite(p.id)} aria-label={favorites.has(p.id)?"Remove favorite":"Add favorite"} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-black"><Heart className={`h-4 w-4 ${favorites.has(p.id)?"fill-[#ffc400] text-[#b48b00]":""}`}/></button>
         </div>
         <div className="p-5"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-semibold text-[#b48b00]">{p.id}</p><h3 className="mt-1 text-base font-black leading-tight">{p.name}</h3></div><SlidersHorizontal className="h-4 w-4 text-zinc-400"/></div>
           <p className="mt-3 text-xs text-zinc-500">{t.fit}: <span className="font-semibold text-zinc-800">{p.model}</span></p>
@@ -191,7 +206,7 @@ function Shop({lang,t,model,setModel,products,add}:{lang:Lang;t:any;model:string
       </article>)}</div>
       </div>
     </section>
-    <SiteFooter lang={lang}/>
+    <SiteFooter lang={lang} onNavigate={go}/>
   </>;
 }
 
@@ -201,7 +216,7 @@ function MenuDrawer({open,setOpen,lang,query,setQuery,labels,go}:{open:boolean;s
     <div className="overflow-y-auto px-6 pb-8"><label className="my-6 flex items-center rounded-full border border-zinc-300 p-2 pl-5"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={lang==="th"?"คำค้นหา":"Search"} className="h-10 min-w-0 flex-1 outline-none"/><span className="grid h-11 w-11 place-items-center rounded-full bg-black text-white"><Search/></span></label>
       <button onClick={()=>go("shop")} className="mb-3 w-full bg-zinc-100 px-1 py-4 text-left text-lg font-black text-[#b88b00]">{lang==="th"?"หน้าแรก":"Home"}</button>
       <nav>{nav.map(({id})=><button key={id} onClick={()=>go(id)} className="flex w-full items-center justify-between border-b border-zinc-100 py-5 text-left text-lg font-black">{labels[id]}<ChevronRight className="h-5 w-5 text-zinc-400"/></button>)}</nav>
-      <div className="mt-7 border-t border-zinc-300 pt-6"><a href="tel:020000000" className="flex items-center gap-3 text-lg font-black"><Phone/>Call 02-000-0000</a><button className="mt-6 flex items-center gap-3 text-lg font-black"><Heart/>รายการโปรด</button></div>
+      <div className="mt-7 border-t border-zinc-300 pt-6"><a href="tel:020000000" className="flex items-center gap-3 text-lg font-black"><Phone/>Call 02-000-0000</a><button onClick={()=>go("profile")} className="mt-6 flex items-center gap-3 text-lg font-black"><Heart/>รายการโปรด</button></div>
     </div>
   </SheetContent></Sheet>;
 }
@@ -211,19 +226,21 @@ function Shell({eyebrow,title,children}:{eyebrow:string;title:string;children:Re
 }
 
 function Garage({lang}:{lang:Lang}) {
+  const [added,setAdded]=useState(false);
   return <Shell eyebrow="VEHICLE PROFILE" title={lang==="th"?"รถของฉัน":"My garage"}><div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
     <section className="border border-white/10 bg-[#111] p-5"><div className="flex items-center gap-4"><div className="grid h-14 w-14 place-items-center rounded-full bg-[#ffc400] text-black"><Car/></div><div><p className="text-xs text-zinc-500">TOYOTA</p><h3 className="text-xl font-black">HIACE 300 2.8 GL</h3><p className="text-sm text-zinc-500">2024 · Diesel · Demo vehicle</p></div></div><div className="mt-6 grid grid-cols-3 gap-2">{[["2","Registered parts"],["642","Warranty days"],["0","Open claims"]].map(([v,k])=><div key={k} className="border-t border-white/10 pt-3"><p className="text-2xl font-black text-[#ffc400]">{v}</p><p className="text-xs text-zinc-500">{k}</p></div>)}</div></section>
-    <section className="border border-dashed border-white/20 p-5"><Wrench className="h-6 w-6 text-[#ffc400]"/><h3 className="mt-4 font-bold">{lang==="th"?"เพิ่มรถอีกคัน":"Add another vehicle"}</h3><p className="mt-1 text-sm text-zinc-500">{lang==="th"?"เก็บข้อมูลรถเพื่อค้นหาอะไหล่ที่ตรงรุ่นได้เร็วขึ้น":"Save your vehicle for faster fitment matching."}</p><Button variant="outline" className="mt-5 border-white/20 bg-transparent text-white">{lang==="th"?"เพิ่มข้อมูลรถ":"Add vehicle"}</Button></section>
+    <section className="border border-dashed border-white/20 p-5"><Wrench className="h-6 w-6 text-[#ffc400]"/><h3 className="mt-4 font-bold">{added?(lang==="th"?"เพิ่มรถเรียบร้อย":"Vehicle added"):(lang==="th"?"เพิ่มรถอีกคัน":"Add another vehicle")}</h3><p className="mt-1 text-sm text-zinc-500">{added?"TOYOTA MAJESTY · 2024":(lang==="th"?"เก็บข้อมูลรถเพื่อค้นหาอะไหล่ที่ตรงรุ่นได้เร็วขึ้น":"Save your vehicle for faster fitment matching.")}</p><Button onClick={()=>setAdded(true)} disabled={added} variant="outline" className="mt-5 border-white/20 bg-transparent text-white">{added?(lang==="th"?"บันทึกแล้ว":"Saved"):(lang==="th"?"เพิ่มข้อมูลรถ":"Add vehicle")}</Button></section>
   </div></Shell>;
 }
 
 function Warranty({lang,flash}:{lang:Lang;flash:(v:string)=>void}) {
   const [serial,setSerial]=useState(""); const [step,setStep]=useState(1);
   const valid=/^\d{4}\sCSA\s\d{5}$/i.test(serial.trim());
+  const scanQr=async(file?:File)=>{if(!file)return;try{const Detector=(window as any).BarcodeDetector;if(!Detector)throw new Error("unsupported");const bitmap=await createImageBitmap(file);const codes=await new Detector({formats:["qr_code"]}).detect(bitmap);const raw=String(codes?.[0]?.rawValue??"").toUpperCase();const match=raw.match(/\d{4}\sCSA\s\d{5}/);if(!match)throw new Error("not-found");setSerial(match[0]);flash(lang==="th"?"อ่าน QR สำเร็จ":"QR scanned")}catch{flash(lang==="th"?"อ่าน QR ไม่สำเร็จ กรุณากรอก Serial":"Could not read QR. Enter the serial number.")}};
   return <Shell eyebrow="SERIAL REGISTRATION" title={lang==="th"?"ลงทะเบียนรับประกัน":"Warranty registration"}><div className="grid gap-5 xl:grid-cols-[1fr_360px]">
     <section className="border border-white/10 bg-[#111] p-5 md:p-7">
       <div className="mb-7 flex items-center gap-2">{[1,2,3].map(n=><div key={n} className="flex flex-1 items-center gap-2"><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${step>=n?"bg-[#ffc400] text-black":"bg-white/10 text-zinc-500"}`}>{n}</span>{n<3&&<span className={`h-px flex-1 ${step>n?"bg-[#ffc400]":"bg-white/10"}`}/>}</div>)}</div>
-      {step===1&&<><Label htmlFor="serial">Serial Number</Label><div className="mt-2 flex gap-2"><Input id="serial" value={serial} onChange={e=>setSerial(e.target.value.toUpperCase())} placeholder="2609 CSA 00001" className="border-white/15 bg-black/40 font-mono text-base"/><Button variant="outline" className="border-white/15 bg-transparent text-white"><QrCode className="h-4 w-4"/>SCAN</Button></div><p className={`mt-2 text-xs ${serial&&!valid?"text-red-400":"text-zinc-600"}`}>Format: 2609 CSA 00001</p><Button disabled={!valid} onClick={()=>setStep(2)} className="mt-6 bg-[#ffc400] text-black">{lang==="th"?"ตรวจสอบ Serial":"Verify serial"}<ChevronRight className="h-4 w-4"/></Button></>}
+      {step===1&&<><Label htmlFor="serial">Serial Number</Label><div className="mt-2 flex gap-2"><Input id="serial" value={serial} onChange={e=>setSerial(e.target.value.toUpperCase())} placeholder="2609 CSA 00001" className="border-white/15 bg-black/40 font-mono text-base"/><Button onClick={()=>document.getElementById("qr-file")?.click()} variant="outline" className="border-white/15 bg-transparent text-white"><QrCode className="h-4 w-4"/>SCAN</Button><input id="qr-file" type="file" accept="image/*" capture="environment" className="hidden" onChange={e=>void scanQr(e.target.files?.[0])}/></div><p className={`mt-2 text-xs ${serial&&!valid?"text-red-400":"text-zinc-600"}`}>Format: 2609 CSA 00001</p><Button disabled={!valid} onClick={()=>setStep(2)} className="mt-6 bg-[#ffc400] text-black">{lang==="th"?"ตรวจสอบ Serial":"Verify serial"}<ChevronRight className="h-4 w-4"/></Button></>}
       {step===2&&<div className="space-y-4"><div className="border border-[#ffc400]/30 bg-[#ffc400]/5 p-4"><BadgeCheck className="h-5 w-5 text-[#ffc400]"/><p className="mt-2 font-bold">CSA Performance Front Pair</p><p className="text-sm text-zinc-500">HIACE 300 · {serial}</p></div><div className="grid gap-3 sm:grid-cols-2"><Field label={lang==="th"?"วันที่ซื้อ":"Purchase date"} type="date"/><Field label={lang==="th"?"ร้านค้าที่ซื้อ":"Dealer"} placeholder="CSA Authorized Dealer"/></div><Upload label={lang==="th"?"เลือกรูปใบเสร็จ":"Choose receipt image"}/><Button onClick={async()=>{await saveEvent("warranty",`CSA-W-${Date.now().toString().slice(-8)}`,{serial,product:"CSA Performance Front Pair",vehicle:"HIACE 300"});setStep(3)}} className="bg-[#ffc400] text-black">{lang==="th"?"ยืนยันข้อมูล":"Confirm details"}</Button></div>}
       {step===3&&<div className="py-7 text-center"><CheckCircle2 className="mx-auto h-12 w-12 text-[#ffc400]"/><h3 className="mt-4 text-2xl font-black">{lang==="th"?"ลงทะเบียนสำเร็จ":"Warranty registered"}</h3><p className="mt-2 text-sm text-zinc-500">Warranty ID: CSA-W-260920-001</p><Button onClick={()=>{setStep(1);setSerial("");flash(lang==="th"?"บันทึก Warranty Demo แล้ว":"Demo warranty saved")}} variant="outline" className="mt-5 border-white/20 bg-transparent text-white">{lang==="th"?"ลงทะเบียนสินค้าเพิ่ม":"Register another product"}</Button></div>}
     </section>
