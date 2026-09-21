@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 import { products as defaults } from "@/src/data/products";
 import type { Product } from "@/src/types/portal";
+import { requireCsaAdmin } from "@/app/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ function fromRow(row:ProductRow):Product { return {id:row.sku,name:row.name,vehi
 export async function GET(request:NextRequest){
   try{
     const includeInactive=request.nextUrl.searchParams.get("includeInactive")==="1";
+    if(includeInactive && !(await requireCsaAdmin()).authorized) return NextResponse.json({error:"Admin access required"},{status:403});
     const result=await db().prepare("SELECT sku,name,vehicle_make,vehicle_model,model_number,category,position,year_from,year_to,price,stock,tag,active,updated_at FROM catalog_products ORDER BY updated_at DESC").all<ProductRow>();
     const overrides=new Map(result.results.map(row=>[row.sku,fromRow(row)]));
     const merged=[...defaults.map(item=>overrides.get(item.id)??item),...result.results.filter(row=>!defaults.some(item=>item.id===row.sku)).map(fromRow)];
@@ -26,6 +28,7 @@ export async function GET(request:NextRequest){
 
 export async function POST(request:NextRequest){
   try{
+    if(!(await requireCsaAdmin()).authorized) return NextResponse.json({error:"Admin access required"},{status:403});
     const body=await request.json() as Product;
     const sku=String(body.id??"").trim().toUpperCase(); const name=String(body.name??"").trim(); const model=String(body.model??"").trim();
     if(!sku||!name||!model||!Number.isFinite(Number(body.price))||Number(body.price)<0) return NextResponse.json({error:"SKU, product name, vehicle model and a valid price are required"},{status:400});
@@ -39,6 +42,7 @@ export async function POST(request:NextRequest){
 
 export async function DELETE(request:NextRequest){
   try{
+    if(!(await requireCsaAdmin()).authorized) return NextResponse.json({error:"Admin access required"},{status:403});
     const sku=String((await request.json()).sku??"").trim().toUpperCase();
     if(!sku) return NextResponse.json({error:"SKU is required"},{status:400});
     const fallback=defaults.find(item=>item.id===sku);
