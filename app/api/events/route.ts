@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPortalEvent, listPortalEvents } from "@/db/portal";
+import { requireCsaAdmin } from "@/app/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    if (!(await requireCsaAdmin()).authorized) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
     return NextResponse.json({ events: await listPortalEvents() });
   } catch (error) {
     console.error("events:list", error);

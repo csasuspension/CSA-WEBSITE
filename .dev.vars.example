@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local work. Never commit the real file.
+CSA_ADMIN_EMAILS=admin@example.com
+CSA_ADMIN_HOST=admin.csasuspension.com
+

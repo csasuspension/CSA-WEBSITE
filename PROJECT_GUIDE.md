@@ -14,7 +14,7 @@
 | รูปภาพและโลโก้ | `public/` |
 | API ออเดอร์ รับประกัน เคลม | `src/api/events.ts` และ `app/api/` |
 | Database | `db/` และ `drizzle/` |
-| ตั้งค่าการ Deploy | `.openai/hosting.json` |
+| ตั้งค่าการ Deploy | `CLOUDFLARE_DEPLOYMENT.md` และ `scripts/prepare-cloudflare-deploy.mjs` |
 
 ## โครงสร้างหลัก
 
