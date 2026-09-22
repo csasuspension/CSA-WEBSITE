@@ -5,7 +5,7 @@ import { getCloudflareAccessUser } from "@/app/cloudflare-access";
 export async function requireCsaAdmin() {
   const requestHeaders = await headers();
   const hostname = (requestHeaders.get("host") ?? "").split(":")[0].toLowerCase();
-  const adminHost = String(env.CSA_ADMIN_HOST ?? "admin.csasuspension.com").toLowerCase();
+  const adminHost = String(env.CSA_ADMIN_HOST ?? "www.csasuspension.com").toLowerCase();
 
   if (hostname !== adminHost) {
     return { authorized:false as const, reason:"wrong-host" as const };
