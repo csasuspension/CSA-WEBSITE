@@ -127,7 +127,7 @@ export function CustomerPortal() {
     <header className="sticky top-0 z-40 bg-[#ffc400] text-black shadow-md">
       <div className="mx-auto flex h-[76px] max-w-[1600px] items-center px-4 sm:h-[88px] sm:px-7">
         <button className="flex items-center" onClick={() => go("shop")} aria-label="CSA home">
-          <img src="/csa-logo.svg" alt="CSA High Performance Suspension" className="h-12 w-auto sm:h-14"/>
+          <img src="/csa-logo.png" alt="CSA High Performance Suspension" className="h-12 w-auto sm:h-14"/>
         </button>
         <nav className="mx-auto hidden items-center gap-7 text-sm font-black lg:flex">
           {(["shop","promotions","branches","advice","about"] as View[]).map(id=><button key={id} onClick={()=>go(id)} className={view===id?"underline decoration-2 underline-offset-8":"opacity-70 hover:opacity-100"}>{labels[id]}</button>)}
@@ -135,11 +135,11 @@ export function CustomerPortal() {
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <button className="header-icon" onClick={()=>loggedIn?go("profile"):setLoginOpen(true)} aria-label={t.login}><UserRound/></button>
           <button className="header-icon relative" onClick={()=>setCartOpen(true)} aria-label={t.cart}><ShoppingBag/>{count>0&&<span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-black px-1 text-[10px] text-white">{count}</span>}</button>
-          {loggedIn&&<button onClick={()=>{setLoggedIn(false);flash(lang==="th"?"ออกจากระบบแล้ว":"Signed out")}} className="header-icon hidden sm:grid" aria-label="Sign out"><LogOut/></button>}
+          {loggedIn&&<button onClick={()=>{setLoggedIn(false);flash(lang==="th"?"ออกจากระบบแล้ว":"Signed out")}} className="header-icon hidden sm:grid" aria-label={lang==="th"?"ออกจากระบบ":"Sign out"}><LogOut/></button>}
           <div className="ml-1 flex rounded-full bg-black p-1 text-[11px] font-black text-white">
             {(["th","en"] as Lang[]).map(x=><button key={x} onClick={()=>changeLang(x)} className={`grid h-7 w-8 place-items-center rounded-full ${lang===x?"bg-white text-black":""}`}>{x.toUpperCase()}</button>)}
           </div>
-          <button className="header-icon ml-1" onClick={()=>setMenuOpen(true)} aria-label="Open menu"><Menu/></button>
+          <button className="header-icon ml-1" onClick={()=>setMenuOpen(true)} aria-label={lang==="th"?"เปิดเมนู":"Open menu"}><Menu/></button>
         </div>
       </div>
     </header>
@@ -156,7 +156,7 @@ export function CustomerPortal() {
     <MenuDrawer open={menuOpen} setOpen={setMenuOpen} lang={lang} query={query} setQuery={setQuery} labels={labels} go={go}/>
 
     {cartOpen&&<Cart lang={lang} t={t} lines={lines} total={total} close={()=>setCartOpen(false)} change={(id:string,d:number)=>setCart(c=>({...c,[id]:Math.max(0,(c[id]||0)+d)}))} checkout={()=>{setCartOpen(false);setCheckoutOpen(true)}}/>}
-    <Login open={loginOpen} setOpen={setLoginOpen} lang={lang} success={()=>{setLoggedIn(true);setLoginOpen(false);flash("Demo login successful")}}/>
+    <Login open={loginOpen} setOpen={setLoginOpen} lang={lang} success={()=>{setLoggedIn(true);setLoginOpen(false);flash(lang==="th"?"เข้าสู่ระบบทดลองสำเร็จ":"Demo login successful")}}/>
     <Checkout open={checkoutOpen} setOpen={setCheckoutOpen} total={total} lang={lang} done={async()=>{const ref=`CSA-ORD-${Date.now().toString().slice(-8)}`;await saveEvent("order",ref,{total,items:lines.map(l=>({id:l.product.id,qty:l.qty}))});setCheckoutOpen(false);setCart({});flash(lang==="th"?"สร้างคำสั่งซื้อทดลองแล้ว":"Demo order created")}}/>
     {toast&&<div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 border border-[#ffc400]/40 bg-[#191919] px-4 py-3 text-sm font-semibold shadow-2xl"><CheckCircle2 className="mr-2 inline h-4 w-4 text-[#ffc400]"/>{toast}</div>}
   </div>;
@@ -199,7 +199,7 @@ function Shop({lang,t,model,setModel,products,add,go,favorites,toggleFavorite}:{
         </div>
         <div className="p-5"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-semibold text-[#b48b00]">{p.id}</p><h3 className="mt-1 text-base font-black leading-tight">{p.name}</h3></div><SlidersHorizontal className="h-4 w-4 text-zinc-400"/></div>
           <p className="mt-3 text-xs text-zinc-500">{t.fit}: <span className="font-semibold text-zinc-800">{p.model}</span></p>
-          <div className="mt-4 flex items-end justify-between"><div><p className="text-[10px] text-zinc-600">DEMO PRICE</p><p className="text-xl font-black">{money.format(p.price)}</p></div><Button size="sm" className="bg-black text-white hover:bg-[#ffc400] hover:text-black" onClick={()=>add(p.id)}><Plus className="h-4 w-4"/>{t.add}</Button></div>
+          <div className="mt-4 flex items-end justify-between"><div><p className="text-[10px] text-zinc-600">{lang==="th"?"ราคาสินค้า":"PRICE"}</p><p className="text-xl font-black">{money.format(p.price)}</p></div><Button size="sm" className="bg-black text-white hover:bg-[#ffc400] hover:text-black" onClick={()=>add(p.id)}><Plus className="h-4 w-4"/>{t.add}</Button></div>
         </div>
       </article>)}</div>
       </div>
@@ -277,7 +277,7 @@ function Cart({lang,t,lines,total,close,change,checkout}:any) {
 }
 
 function Login({open,setOpen,lang,success}:any) {
-  return <Dialog open={open} onOpenChange={setOpen}><DialogContent className="border-white/10 bg-[#121212] text-white sm:max-w-md"><DialogHeader><DialogTitle className="font-display text-3xl uppercase">{lang==="th"?"เข้าสู่ระบบสมาชิก":"Member sign in"}</DialogTitle></DialogHeader><p className="text-sm text-zinc-400">{lang==="th"?"เลือกช่องทางเพื่อทดลอง Flow การเข้าสู่ระบบ":"Choose a method to preview sign-in."}</p><Button className="h-12 bg-[#06c755] text-white hover:bg-[#05b64d]" onClick={success}>LINE Login</Button><div className="flex items-center gap-3 text-xs text-zinc-600"><span className="h-px flex-1 bg-white/10"/>OR<span className="h-px flex-1 bg-white/10"/></div><Label>Phone number</Label><Input placeholder="08X-XXX-XXXX" className="border-white/15 bg-black/40"/><Button variant="outline" className="h-11 border-white/20 bg-transparent text-white" onClick={success}>OTP Demo</Button><p className="text-xs text-zinc-600">Demo only — no OTP or LINE credentials are connected.</p></DialogContent></Dialog>;
+  return <Dialog open={open} onOpenChange={setOpen}><DialogContent className="border-white/10 bg-[#121212] text-white sm:max-w-md"><DialogHeader><DialogTitle className="font-display text-3xl uppercase">{lang==="th"?"เข้าสู่ระบบสมาชิก":"Member sign in"}</DialogTitle></DialogHeader><p className="text-sm text-zinc-400">{lang==="th"?"เลือกช่องทางเพื่อทดลอง Flow การเข้าสู่ระบบ":"Choose a method to preview sign-in."}</p><Button className="h-12 bg-[#06c755] text-white hover:bg-[#05b64d]" onClick={success}>LINE Login</Button><div className="flex items-center gap-3 text-xs text-zinc-600"><span className="h-px flex-1 bg-white/10"/>OR<span className="h-px flex-1 bg-white/10"/></div><Label>Phone number</Label><Input placeholder="08X-XXX-XXXX" className="border-white/15 bg-black/40"/><Button variant="outline" className="h-11 border-white/20 bg-transparent text-white" onClick={success}>{lang==="th"?"ทดลอง OTP":"OTP Demo"}</Button><p className="text-xs text-zinc-600">Demo only — no OTP or LINE credentials are connected.</p></DialogContent></Dialog>;
 }
 
 function Checkout({open,setOpen,total,lang,done}:any) {

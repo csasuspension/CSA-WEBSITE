@@ -25,7 +25,7 @@ export default async function AdminPage() {
       <main className="grid min-h-screen place-items-center bg-[#090909] px-6 text-white">
         <section className="max-w-md border border-white/10 bg-[#111] p-8 text-center">
           <img src="/csa-logo.svg" alt="CSA" className="mx-auto h-16 w-auto" />
-          <h1 className="mt-7 text-2xl font-black">Admin access required</h1>
+          <h1 className="mt-7 text-2xl font-black">Back-office access required</h1>
           <p className="mt-3 leading-7 text-zinc-400">{message}</p>
           <a
             href={needsAccessSetup ? ACCESS_SETTINGS_URL : ACCESS_LOGOUT_URL}
