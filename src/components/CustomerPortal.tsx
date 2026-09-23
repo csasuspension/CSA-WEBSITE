@@ -7,6 +7,7 @@ import {
   Menu, Minus, PackageCheck, Phone, Plus, QrCode, Search, ShieldCheck,
   ShoppingBag, SlidersHorizontal, Sparkles, UserRound, X, MapPin,
   FileText, Info, Newspaper, PlayCircle, CircleHelp, Briefcase, Mail, Package,
+  Grid2X2, List, Store, Navigation, ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShockAbsorberIcon } from "@/src/components/icons/ShockAbsorberIcon";
@@ -123,7 +124,7 @@ export function CustomerPortal() {
 
   const go = (next:View) => { setView(next); setMenuOpen(false); window.scrollTo({top:0,behavior:"smooth"}); };
 
-  return <div className="min-h-screen bg-[#090909] text-white">
+  return <div className="min-h-screen bg-[#090909] pb-20 text-white">
     <header className="sticky top-0 z-40 bg-[#ffc400] text-black shadow-md">
       <div className="mx-auto flex h-[76px] max-w-[1600px] items-center px-4 sm:h-[88px] sm:px-7">
         <button className="flex items-center" onClick={() => go("shop")} aria-label="CSA home">
@@ -158,6 +159,7 @@ export function CustomerPortal() {
     {cartOpen&&<Cart lang={lang} t={t} lines={lines} total={total} close={()=>setCartOpen(false)} change={(id:string,d:number)=>setCart(c=>({...c,[id]:Math.max(0,(c[id]||0)+d)}))} checkout={()=>{setCartOpen(false);setCheckoutOpen(true)}}/>}
     <Login open={loginOpen} setOpen={setLoginOpen} lang={lang} success={()=>{setLoggedIn(true);setLoginOpen(false);flash(lang==="th"?"เข้าสู่ระบบทดลองสำเร็จ":"Demo login successful")}}/>
     <Checkout open={checkoutOpen} setOpen={setCheckoutOpen} total={total} lang={lang} done={async()=>{const ref=`CSA-ORD-${Date.now().toString().slice(-8)}`;await saveEvent("order",ref,{total,items:lines.map(l=>({id:l.product.id,qty:l.qty}))});setCheckoutOpen(false);setCart({});flash(lang==="th"?"สร้างคำสั่งซื้อทดลองแล้ว":"Demo order created")}}/>
+    <DealerFinderDock lang={lang}/>
     {toast&&<div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 border border-[#ffc400]/40 bg-[#191919] px-4 py-3 text-sm font-semibold shadow-2xl"><CheckCircle2 className="mr-2 inline h-4 w-4 text-[#ffc400]"/>{toast}</div>}
   </div>;
 }
@@ -166,6 +168,10 @@ function Shop({lang,t,model,setModel,products,add,go,favorites,toggleFavorite}:{
   const [make,setMake]=useState("TOYOTA");
   const [chosen,setChosen]=useState(model==="ALL"?"HIACE 300":model);
   const [year,setYear]=useState("2024");
+  const [layout,setLayout]=useState<"grid"|"list">("grid");
+  const [filtersOpen,setFiltersOpen]=useState(true);
+  const [selected,setSelected]=useState<Product|null>(null);
+  if(selected)return <ProductDetail product={selected} lang={lang} back={()=>{setSelected(null);window.scrollTo({top:0,behavior:"smooth"})}} favorite={favorites.has(selected.id)} toggleFavorite={()=>toggleFavorite(selected.id)} go={go}/>;
   return <>
     <section className="relative min-h-[340px] overflow-hidden sm:min-h-[470px]">
       <img src="/csa-ci.jpg" alt="CSA high performance suspension" className="absolute inset-0 h-full w-full object-cover object-[57%_5%]"/>
@@ -180,32 +186,61 @@ function Shop({lang,t,model,setModel,products,add,go,favorites,toggleFavorite}:{
     <section className="grid grid-cols-3 bg-black text-center">
       {[[ShockAbsorberIcon,lang==="th"?"โช้คอัพ":"SHOCKS",()=>document.getElementById("finder")?.scrollIntoView({behavior:"smooth"})],[ShieldCheck,lang==="th"?"รับประกัน":"WARRANTY",()=>go("warranty")],[BadgeCheck,lang==="th"?"ของแท้ CSA":"GENUINE CSA",()=>go("about")]].map(([I,label,action],i)=>{const Icon=I as typeof ShockAbsorberIcon;return <button key={label as string} onClick={action as ()=>void} className={`flex min-h-28 flex-col items-center justify-center gap-2 border-r border-white/10 px-2 text-xs font-black sm:text-base ${i===0?"border-t-4 border-t-[#ffc400] bg-white text-black":"text-white"}`}><Icon className="h-8 w-8"/>{label as string}</button>})}
     </section>
-    <section id="finder" className="bg-white px-5 py-12 text-black sm:px-10 sm:py-16">
-      <div className="mx-auto max-w-4xl text-center"><h2 className="font-display text-4xl sm:text-5xl">{lang==="th"?"ค้นหาโช้คตามรุ่นรถ":"FIND PARTS FOR YOUR VEHICLE"}</h2><p className="mt-2 text-zinc-500">{lang==="th"?"ระบุข้อมูลรถ เพื่อดูสินค้าที่แนะนำ":"Select your vehicle to see compatible products"}</p></div>
-      <div className="mx-auto mt-8 max-w-3xl space-y-3">
+    <section id="finder" className="bg-[#171717] px-5 py-10 text-black sm:px-10 sm:py-14">
+      <div className="mx-auto max-w-4xl rounded-[28px] bg-[#ffc400] p-5 shadow-2xl sm:p-8"><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-full bg-black text-white"><ShockAbsorberIcon className="h-7 w-7"/></span><div><p className="text-sm font-black uppercase tracking-wider">PRODUCT / {lang==="th"?"โช้คอัพ":"SHOCK ABSORBERS"}</p><h2 className="font-display text-3xl sm:text-4xl">{lang==="th"?"ค้นหาจากรุ่นรถ":"Find by vehicle"}</h2></div></div>
+      <div className="mt-7 space-y-3">
         <VehicleFinderSelect number="01" value={make} setValue={setMake} options={["TOYOTA"]} label={lang==="th"?"ยี่ห้อรถ":"Vehicle make"}/>
         <VehicleFinderSelect number="02" value={chosen} setValue={setChosen} options={["HIACE 300","MAJESTY","NEW COMMUTER"]} label={lang==="th"?"รุ่นรถ":"Vehicle model"}/>
         <VehicleFinderSelect number="03" value={year} setValue={setYear} options={["2024","2023","2022","2021"]} label={lang==="th"?"ปีรถ":"Model year"}/>
-        <Button onClick={()=>setModel(chosen)} className="mt-6 h-14 w-full bg-[#ffc400] text-base font-black text-black hover:bg-black hover:text-white"><Search className="h-5 w-5"/>{lang==="th"?"ค้นหา":"SEARCH"}</Button>
-      </div>
+        <Button onClick={()=>setModel(chosen)} className="mt-5 h-14 w-full bg-black text-base font-black text-white hover:bg-zinc-800"><Search className="h-5 w-5"/>{lang==="th"?"ค้นหา":"SEARCH"}</Button>
+      </div></div>
     </section>
-    <section className="bg-[#f2f2f2] px-5 py-12 text-black sm:px-10 sm:py-16">
-      <div className="mx-auto max-w-6xl"><div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-black tracking-[.2em] text-[#b48b00]">CSA RECOMMENDS</p><h2 className="mt-1 font-display text-4xl">{lang==="th"?"สินค้าที่เหมาะกับรถคุณ":"COMPATIBLE PRODUCTS"}</h2></div><div className="flex flex-wrap gap-2">{["ALL","HIACE 300","MAJESTY","NEW COMMUTER"].map(x=><button key={x} onClick={()=>setModel(x)} className={`rounded-full border px-3 py-2 text-xs font-bold ${model===x?"border-black bg-black text-white":"border-zinc-300 bg-white text-zinc-600"}`}>{x==="ALL"?t.all:x}</button>)}</div></div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{products.map(p=><article key={p.id} className="group overflow-hidden bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-        <div className="relative h-44 overflow-hidden bg-black">
-          <img src="/csa-ci.jpg" alt="" className="h-full w-full object-cover object-[70%_40%] opacity-65 transition duration-500 group-hover:scale-105"/>
-          <span className="absolute left-4 top-4 bg-[#ffc400] px-2 py-1 text-[10px] font-black tracking-wider text-black">{p.tag}</span>
-          <button onClick={()=>toggleFavorite(p.id)} aria-label={favorites.has(p.id)?"Remove favorite":"Add favorite"} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-black"><Heart className={`h-4 w-4 ${favorites.has(p.id)?"fill-[#ffc400] text-[#b48b00]":""}`}/></button>
-        </div>
-        <div className="p-5"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-semibold text-[#b48b00]">{p.id}</p><h3 className="mt-1 text-base font-black leading-tight">{p.name}</h3></div><SlidersHorizontal className="h-4 w-4 text-zinc-400"/></div>
-          <p className="mt-3 text-xs text-zinc-500">{t.fit}: <span className="font-semibold text-zinc-800">{p.model}</span></p>
-          <div className="mt-4 flex items-end justify-between"><div><p className="text-[10px] text-zinc-600">{lang==="th"?"ราคาสินค้า":"PRICE"}</p><p className="text-xl font-black">{money.format(p.price)}</p></div><Button size="sm" className="bg-black text-white hover:bg-[#ffc400] hover:text-black" onClick={()=>add(p.id)}><Plus className="h-4 w-4"/>{t.add}</Button></div>
-        </div>
-      </article>)}</div>
+    <section id="product-catalog" className="bg-[#f2f2f2] px-5 py-10 text-black sm:px-10 sm:py-14">
+      <div className="mx-auto max-w-6xl"><div className="mb-6 flex items-center justify-between gap-3 border-b border-zinc-300 pb-5"><button onClick={()=>setFiltersOpen(x=>!x)} className="flex items-center gap-3 text-lg font-black"><SlidersHorizontal/>{lang==="th"?"แสดงตัวกรอง":"Filters"}<ChevronDown className={`h-4 w-4 transition ${filtersOpen?"rotate-180":""}`}/></button><div className="flex gap-2"><button aria-label="Grid view" onClick={()=>setLayout("grid")} className={`grid h-11 w-11 place-items-center rounded-xl ${layout==="grid"?"bg-black text-white":"bg-white text-zinc-400"}`}><Grid2X2/></button><button aria-label="List view" onClick={()=>setLayout("list")} className={`grid h-11 w-11 place-items-center rounded-xl ${layout==="list"?"bg-black text-white":"bg-white text-zinc-400"}`}><List/></button></div></div>
+      {filtersOpen&&<div className="mb-7 flex flex-wrap gap-2">{["ALL","HIACE 300","MAJESTY","NEW COMMUTER"].map(x=><button key={x} onClick={()=>setModel(x)} className={`rounded-full border px-4 py-2 text-sm font-bold ${model===x?"border-black bg-black text-white":"border-zinc-300 bg-white text-zinc-600"}`}>{x==="ALL"?t.all:x}</button>)}</div>}
+      <div className={layout==="grid"?"grid grid-cols-2 gap-3 lg:grid-cols-3":"space-y-4"}>{products.map(p=><ProductCard key={p.id} product={p} lang={lang} layout={layout} favorite={favorites.has(p.id)} toggleFavorite={()=>toggleFavorite(p.id)} details={()=>{setSelected(p);window.scrollTo({top:0,behavior:"smooth"})}}/>)}</div>
+      {!products.length&&<div className="rounded-2xl bg-white p-10 text-center text-zinc-500">{lang==="th"?"ไม่พบสินค้าที่ตรงกับตัวกรอง":"No products match these filters"}</div>}
       </div>
     </section>
     <SiteFooter lang={lang} onNavigate={go}/>
   </>;
+}
+
+function ProductCard({product:p,lang,layout,favorite,toggleFavorite,details}:{product:Product;lang:Lang;layout:"grid"|"list";favorite:boolean;toggleFavorite:()=>void;details:()=>void}){
+  const image=p.imageUrls?.find(Boolean);
+  return <article className={`group overflow-hidden rounded-[24px] bg-white shadow-sm ${layout==="list"?"grid grid-cols-[38%_1fr] sm:grid-cols-[260px_1fr]":""}`}>
+    <button onClick={details} className={`relative grid w-full place-items-center overflow-hidden bg-white ${layout==="list"?"min-h-52":"h-52 sm:h-72"}`}>
+      {image?<img src={image} alt={p.name} className="h-full w-full object-contain p-5 transition duration-300 group-hover:scale-105"/>:<ShockAbsorberIcon className="h-28 w-28 text-zinc-800 sm:h-36 sm:w-36"/>}
+      <span className="absolute left-3 top-3 rounded-full bg-[#ffc400] px-3 py-1 text-[10px] font-black">{p.tag}</span>
+    </button>
+    <div className="relative flex min-w-0 flex-col p-4 sm:p-5"><button onClick={toggleFavorite} aria-label={favorite?"Remove favorite":"Add favorite"} className="absolute right-3 top-3 text-zinc-400"><Heart className={`h-6 w-6 ${favorite?"fill-[#ffc400] text-[#b48b00]":""}`}/></button>
+      <p className="pr-8 text-[11px] font-bold text-zinc-500">{p.brand||"CSA"} · {p.id}</p><button onClick={details} className="mt-1 text-left text-base font-black leading-tight sm:text-xl">{p.name}</button>
+      <div className="mt-3 flex flex-wrap gap-1.5"><span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-bold">{p.position||"—"}</span><span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-bold">{p.model}</span></div>
+      <div className="mt-auto pt-4"><p className="text-xs text-zinc-500">{lang==="th"?"ราคาเริ่มต้น":"Starting price"}</p><p className="text-xl font-black">{p.price>0?money.format(p.price):(lang==="th"?"สอบถามราคา":"Contact us")}</p>
+      <Button onClick={details} className="mt-4 h-11 w-full bg-[#ffc400] font-black text-black hover:bg-black hover:text-white">{lang==="th"?"ดูรายละเอียด":"View details"}</Button></div>
+    </div>
+  </article>;
+}
+
+function ProductDetail({product:p,lang,back,favorite,toggleFavorite,go}:{product:Product;lang:Lang;back:()=>void;favorite:boolean;toggleFavorite:()=>void;go:(v:View)=>void}){
+  const [tab,setTab]=useState<"details"|"specs"|"warranty">("details");
+  const image=p.imageUrls?.find(Boolean);
+  const specs=[
+    {name:lang==="th"?"รุ่นรถที่เข้ากันได้":"Compatible vehicle",value:[p.vehicleMake,p.model,p.yearFrom&&p.yearTo?`${p.yearFrom}–${p.yearTo}`:""].filter(Boolean).join(" ")},
+    {name:lang==="th"?"ตำแหน่ง":"Position",value:p.position||"—"},
+    {name:lang==="th"?"โครงสร้าง":"Construction",value:p.category||"Shock absorber"},
+    {name:lang==="th"?"รหัสรุ่นรถ":"Chassis",value:p.modelNumber||"—"},
+    ...(p.attributes??[]),
+  ];
+  const tabs=[{id:"details" as const,label:lang==="th"?"รายละเอียด":"Details"},{id:"specs" as const,label:lang==="th"?"ข้อมูลจำเพาะ":"Specifications"},{id:"warranty" as const,label:lang==="th"?"การรับประกัน":"Warranty"}];
+  return <><section className="bg-[#f4f4f4] px-5 py-7 text-black sm:px-10 sm:py-10"><div className="mx-auto max-w-6xl"><button onClick={back} className="mb-5 flex items-center gap-2 text-sm font-bold text-zinc-500">← {lang==="th"?"กลับไปหน้าสินค้า":"Back to products"}</button><div className="grid gap-7 lg:grid-cols-2"><div className="relative grid min-h-[360px] place-items-center rounded-[28px] bg-white p-8 shadow-sm">{image?<img src={image} alt={p.name} className="max-h-[480px] w-full object-contain"/>:<ShockAbsorberIcon className="h-52 w-52 text-zinc-900"/>}<button onClick={toggleFavorite} className="absolute right-5 top-5 text-zinc-400"><Heart className={`h-8 w-8 ${favorite?"fill-[#ffc400] text-[#b48b00]":""}`}/></button></div><div className="flex flex-col justify-center"><p className="text-sm font-black text-[#b48b00]">{p.brand||"CSA"} · {p.id}</p><h1 className="mt-2 font-display text-4xl leading-tight sm:text-6xl">{p.name}</h1><div className="mt-5 flex flex-wrap gap-2"><span className="rounded-lg bg-white px-3 py-2 text-sm font-bold">{p.position||"—"}</span><span className="rounded-lg bg-white px-3 py-2 text-sm font-bold">{p.model}</span></div><p className="mt-6 text-zinc-600">{p.shortDescription||(lang==="th"?"โช้คอัพสมรรถนะสูง ออกแบบให้ตรงกับรุ่นรถและการใช้งาน":"High-performance shock absorber engineered for precise vehicle fitment.")}</p><p className="mt-7 text-sm text-zinc-500">{lang==="th"?"ราคาเริ่มต้น":"Starting price"}</p><p className="text-3xl font-black">{p.price>0?money.format(p.price):(lang==="th"?"สอบถามราคา":"Contact us")}</p><Button onClick={()=>go("branches")} className="mt-6 h-14 bg-[#ffc400] text-base font-black text-black hover:bg-black hover:text-white"><MapPin/>{lang==="th"?"ค้นหาตัวแทนจำหน่าย":"Find a dealer"}</Button></div></div>
+      <div className="mt-12 flex overflow-x-auto border-b border-zinc-300">{tabs.map(item=><button key={item.id} onClick={()=>setTab(item.id)} className={`shrink-0 border-b-4 px-5 py-4 text-base font-black ${tab===item.id?"border-[#ffc400] text-black":"border-transparent text-zinc-500"}`}>{item.label}</button>)}</div>
+      <div className="min-h-[300px] py-8">{tab==="details"&&<div><h2 className="text-3xl font-black">{lang==="th"?"รายละเอียด":"Details"}</h2><p className="mt-5 whitespace-pre-line leading-8 text-zinc-700">{p.description||p.shortDescription||(lang==="th"?"ออกแบบเพื่อเพิ่มความมั่นใจในการขับขี่ ให้การควบคุมที่นุ่ม แน่น และหนึบในทุกเส้นทาง":"Designed for confident control, comfort and stability on every journey.")}</p></div>}{tab==="specs"&&<div><h2 className="text-3xl font-black">{lang==="th"?"ข้อมูลจำเพาะ":"Specifications"}</h2><div className="mt-5 overflow-hidden rounded-2xl border border-zinc-300">{specs.filter(x=>x.name&&x.value).map((row,index)=><div key={`${row.name}-${index}`} className="grid grid-cols-[42%_1fr] border-b border-zinc-300 last:border-0 even:bg-white"><span className="p-4 font-bold">{row.name}</span><span className="p-4 font-black">{row.value}</span></div>)}</div></div>}{tab==="warranty"&&<div><h2 className="text-3xl font-black">{lang==="th"?"การรับประกัน":"Warranty"}</h2><div className="mt-5 overflow-hidden rounded-2xl border border-zinc-300"><div className="grid grid-cols-2 bg-[#ffc400] font-black"><span className="p-4">{lang==="th"?"ระยะรับประกัน":"Period"}</span><span className="p-4">{lang==="th"?"เงื่อนไข":"Conditions"}</span></div><div className="grid grid-cols-2 bg-white"><span className="p-4 font-bold">{p.warranty?.duration||(lang==="th"?"1 ปี":"1 year")}</span><span className="p-4">{p.warranty?.conditions||(lang==="th"?"รับประกันความบกพร่องจากการผลิต":"Manufacturing defects")}</span></div></div>{p.warranty?.note&&<p className="mt-5 whitespace-pre-line leading-7 text-zinc-600">{p.warranty.note}</p>}</div>}</div></div></section><SiteFooter lang={lang} onNavigate={go}/></>;
+}
+
+function DealerFinderDock({lang}:{lang:Lang}){
+  const [open,setOpen]=useState(false); const [location,setLocation]=useState(""); const [radius,setRadius]=useState("10");
+  return <><button onClick={()=>setOpen(true)} className="fixed bottom-3 left-1/2 z-40 flex h-14 w-[calc(100%-24px)] max-w-xl -translate-x-1/2 items-center justify-center gap-3 rounded-2xl border-2 border-black bg-[#ffc400] px-5 font-black text-black shadow-[0_10px_35px_rgba(0,0,0,.35)]"><Navigation className="h-5 w-5"/>{lang==="th"?"ค้นหาตัวแทนใกล้ฉัน":"Find a dealer near me"}</button><Dialog open={open} onOpenChange={setOpen}><DialogContent className="rounded-[24px] border-0 bg-[#ffc400] text-black sm:max-w-lg"><DialogHeader><DialogTitle className="flex items-center gap-3 text-3xl font-black"><Store/>{lang==="th"?"ค้นหาตัวแทนใกล้คุณ":"Find a nearby dealer"}</DialogTitle></DialogHeader><div className="space-y-3"><label className="flex h-14 items-center rounded-xl bg-white px-4"><Search className="mr-3 text-zinc-500"/><input value={location} onChange={e=>setLocation(e.target.value)} placeholder={lang==="th"?"สถานที่ใกล้เคียงหรือรหัสไปรษณีย์":"Location or postal code"} className="min-w-0 flex-1 bg-transparent outline-none"/></label><select value={radius} onChange={e=>setRadius(e.target.value)} className="h-14 w-full rounded-xl bg-white px-4 font-bold"><option value="10">10 km</option><option value="25">25 km</option><option value="50">50 km</option></select><Button onClick={()=>setOpen(false)} className="h-14 w-full bg-black font-black text-white hover:bg-zinc-800"><Search/>{lang==="th"?"ค้นหา":"Search"}</Button></div></DialogContent></Dialog></>;
 }
 
 function MenuDrawer({open,setOpen,lang,query,setQuery,labels,go}:{open:boolean;setOpen:(v:boolean)=>void;lang:Lang;query:string;setQuery:(v:string)=>void;labels:Record<View,string>;go:(v:View)=>void}) {
@@ -213,7 +248,7 @@ function MenuDrawer({open,setOpen,lang,query,setQuery,labels,go}:{open:boolean;s
     <SheetHeader className="flex-row items-center justify-between border-b border-zinc-200 px-6 py-6"><SheetTitle className="text-3xl font-black">{lang==="th"?"เมนู":"Menu"}</SheetTitle><button onClick={()=>setOpen(false)} aria-label="Close menu"><X className="h-8 w-8 text-zinc-500"/></button></SheetHeader>
     <div className="overflow-y-auto px-6 pb-8"><label className="my-6 flex items-center rounded-full border border-zinc-300 p-2 pl-5"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={lang==="th"?"คำค้นหา":"Search"} className="h-10 min-w-0 flex-1 outline-none"/><span className="grid h-11 w-11 place-items-center rounded-full bg-black text-white"><Search/></span></label>
       <button onClick={()=>go("shop")} className="mb-3 w-full bg-zinc-100 px-1 py-4 text-left text-lg font-black text-[#b88b00]">{lang==="th"?"หน้าแรก":"Home"}</button>
-      <nav>{nav.map(({id})=><button key={id} onClick={()=>go(id)} className="flex w-full items-center justify-between border-b border-zinc-100 py-5 text-left text-lg font-black">{labels[id]}<ChevronRight className="h-5 w-5 text-zinc-400"/></button>)}</nav>
+      <nav><div className="border-b border-zinc-100 py-4"><p className="text-lg font-black">{lang==="th"?"สินค้า":"Products"}</p><button onClick={()=>{go("shop");window.setTimeout(()=>document.getElementById("product-catalog")?.scrollIntoView({behavior:"smooth"}),120)}} className="mt-3 flex w-full items-center justify-between rounded-xl bg-[#ffc400] px-4 py-4 text-left font-black"><span className="flex items-center gap-3"><ShockAbsorberIcon className="h-6 w-6"/>{lang==="th"?"โช้คอัพ":"Shock absorbers"}</span><ChevronRight className="h-5 w-5"/></button></div>{nav.filter(({id})=>id!=="shop").map(({id})=><button key={id} onClick={()=>go(id)} className="flex w-full items-center justify-between border-b border-zinc-100 py-5 text-left text-lg font-black">{labels[id]}<ChevronRight className="h-5 w-5 text-zinc-400"/></button>)}</nav>
       <div className="mt-7 border-t border-zinc-300 pt-6"><a href="tel:020000000" className="flex items-center gap-3 text-lg font-black"><Phone/>Call 02-000-0000</a><button onClick={()=>go("profile")} className="mt-6 flex items-center gap-3 text-lg font-black"><Heart/>รายการโปรด</button></div>
     </div>
   </SheetContent></Sheet>;

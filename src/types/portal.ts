@@ -9,6 +9,7 @@ export type ProductAttribute = { name: string; value: string };
 export type ProductOptionGroup = { name: string; values: string[] };
 export type ProductVariant = { name: string; sku: string; price: number; stock: number; weight?: number };
 export type ProductShipping = { weight?: number; width?: number; length?: number; height?: number };
+export type ProductWarranty = { duration?: string; conditions?: string; note?: string };
 
 export type Product = {
   id: string; name: string; model: string; modelNumber?: string; vehicleMake?: string;
@@ -16,7 +17,7 @@ export type Product = {
   price: number; stock?: number; tag: string; active?: boolean;
   brand?: string; shortDescription?: string; description?: string; imageUrls?: string[];
   attributes?: ProductAttribute[]; optionGroups?: ProductOptionGroup[];
-  variants?: ProductVariant[]; shipping?: ProductShipping;
+  variants?: ProductVariant[]; shipping?: ProductShipping; warranty?: ProductWarranty;
 };
 
 export type PortalEventType = "order" | "warranty" | "claim";

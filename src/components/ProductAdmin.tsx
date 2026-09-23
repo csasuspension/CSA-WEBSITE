@@ -14,20 +14,18 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { Product, ProductAttribute, ProductOptionGroup, ProductVariant } from "@/src/types/portal";
 
-type TabId="general"|"attributes"|"details"|"variants"|"shipping";
+type TabId="general"|"details"|"attributes"|"warranty";
 const tabs:{id:TabId;label:string;icon:typeof Boxes}[]=[
   {id:"general",label:"ข้อมูลทั่วไป",icon:PackagePlus},
-  {id:"attributes",label:"คุณลักษณะ",icon:Settings2},
   {id:"details",label:"รายละเอียด",icon:Layers3},
-  {id:"variants",label:"ตัวเลือกสินค้า",icon:SlidersHorizontal},
-  {id:"shipping",label:"การจัดส่ง",icon:PackageCheck},
+  {id:"attributes",label:"ข้อมูลจำเพาะ",icon:Settings2},
+  {id:"warranty",label:"การรับประกัน",icon:PackageCheck},
 ];
 
 const createProduct=():Product=>({
   id:"",name:"",vehicleMake:"",model:"",modelNumber:"",category:"",position:"",
   price:0,stock:0,tag:"NEW",active:true,brand:"CSA",shortDescription:"",
-  description:"",imageUrls:[],attributes:[],optionGroups:[],variants:[],
-  shipping:{weight:0,width:0,length:0,height:0},
+  description:"",imageUrls:[],attributes:[],warranty:{duration:"1 ปี",conditions:"รับประกันความบกพร่องจากการผลิต",note:""},
 });
 const copyProduct=(item:Product):Product=>JSON.parse(JSON.stringify(item)) as Product;
 
@@ -58,17 +56,12 @@ export function ProductAdmin(){
   const save=async()=>{
     if(!editing)return;
     setSaving(true);setMessage("");
-    const variants=editing.variants??[];
-    const payload:Product=variants.length?{
-      ...editing,
-      price:Math.min(...variants.map(v=>Number(v.price)||0)),
-      stock:variants.reduce((sum,v)=>sum+(Number(v.stock)||0),0),
-    }:editing;
+    const payload:Product=editing;
     try{
       const response=await fetch("/csa-admin/api/products",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error);
-      setEditing(null);setMessage("บันทึกสินค้าและตัวเลือกเรียบร้อย");await load();
+      setEditing(null);setMessage("บันทึกข้อมูลสินค้าสำหรับหน้า Customer UI เรียบร้อย");await load();
     }catch(error){setMessage(error instanceof Error?error.message:"Could not save product")}
     finally{setSaving(false)}
   };
@@ -80,7 +73,7 @@ export function ProductAdmin(){
 
   return <div>
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><p className="text-xs font-bold tracking-[.18em] text-[#ffc400]">PRODUCT MANAGEMENT</p><h2 className="mt-1 text-3xl font-black">สินค้า</h2><p className="mt-2 text-sm text-zinc-500">จัดการข้อมูล รายละเอียด คุณลักษณะ ตัวเลือก ราคา สต็อก และการจัดส่งได้เอง</p></div>
+      <div><p className="text-xs font-bold tracking-[.18em] text-[#ffc400]">PRODUCT MANAGEMENT</p><h2 className="mt-1 text-3xl font-black">สินค้า</h2><p className="mt-2 text-sm text-zinc-500">จัดการข้อมูลที่แสดงบนหน้า Customer UI: รายการสินค้า รายละเอียด ข้อมูลจำเพาะ และการรับประกัน</p></div>
       <Button onClick={()=>setEditing(createProduct())} className="bg-[#ffc400] text-black"><Plus/>เพิ่มสินค้า</Button>
     </div>
     <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -94,15 +87,13 @@ export function ProductAdmin(){
         <Button onClick={()=>void load()} variant="outline" className="border-white/15 bg-transparent text-white"><RefreshCw className={loading?"animate-spin":""}/>รีเฟรช</Button>
       </div>
       {loading?<div className="grid h-44 place-items-center"><Loader2 className="animate-spin text-[#ffc400]"/></div>:
-      <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-left text-sm">
-        <thead className="bg-white/[.03] text-xs text-zinc-500"><tr><th className="p-4">SKU / PRODUCT</th><th>หมวดหมู่</th><th>FITMENT</th><th>ตัวเลือก</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th className="pr-4 text-right">ACTION</th></tr></thead>
+      <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-left text-sm">
+        <thead className="bg-white/[.03] text-xs text-zinc-500"><tr><th className="p-4">SKU / PRODUCT</th><th>หมวดหมู่</th><th>FITMENT</th><th>PRICE</th><th>STATUS</th><th className="pr-4 text-right">ACTION</th></tr></thead>
         <tbody>{visible.map(item=><tr key={item.id} className="border-t border-white/10">
           <td className="p-4"><p className="font-mono text-xs text-[#ffc400]">{item.id}</p><p className="mt-1 font-bold">{item.name}</p><p className="text-xs text-zinc-600">{item.brand||"—"}</p></td>
           <td>{item.category||"—"}<p className="text-xs text-zinc-600">{item.position||"—"}</p></td>
           <td><p className="font-bold">{[item.vehicleMake,item.model].filter(Boolean).join(" ")||"—"}</p><p className="text-xs text-zinc-600">{item.modelNumber||"—"}</p></td>
-          <td>{item.variants?.length??0} Variants<p className="text-xs text-zinc-600">{item.optionGroups?.map(x=>x.name).join(" · ")||"ไม่มีตัวเลือก"}</p></td>
           <td className="font-bold">฿{Number(item.price).toLocaleString("th-TH")}</td>
-          <td><span className={Number(item.stock)<8?"font-bold text-amber-400":""}>{item.stock??0}</span></td>
           <td><span className={`rounded-full px-2 py-1 text-xs font-bold ${item.active===false?"bg-zinc-800 text-zinc-500":"bg-emerald-500/15 text-emerald-400"}`}>{item.active===false?"HIDDEN":"ACTIVE"}</span></td>
           <td><div className="flex justify-end gap-2 pr-4"><Button onClick={()=>setEditing(copyProduct(item))} size="sm" variant="outline" className="border-white/15 bg-transparent text-white"><Edit3/>แก้ไข</Button><Button onClick={()=>void remove(item)} size="icon" variant="outline" className="border-red-500/20 bg-transparent text-red-400" aria-label={`Hide ${item.name}`}><Trash2/></Button></div></td>
         </tr>)}</tbody>
@@ -126,11 +117,10 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
       <DialogHeader className="border-b border-white/10 px-5 py-4"><DialogTitle className="flex items-center gap-2 text-2xl"><PackagePlus className="text-[#ffc400]"/>{value.id?"แก้ไขสินค้า":"เพิ่มสินค้าใหม่"}</DialogTitle></DialogHeader>
       <div className="flex overflow-x-auto border-b border-white/10 px-3">{tabs.map(item=>{const Icon=item.icon;return <button key={item.id} onClick={()=>setTab(item.id)} className={`flex shrink-0 items-center gap-2 rounded-none border-b-2 px-4 py-3 text-sm font-bold ${tab===item.id?"border-[#ffc400] text-[#ffc400]":"border-transparent text-zinc-500"}`}><Icon className="h-4 w-4"/>{item.label}</button>})}</div>
       <div className="max-h-[68vh] overflow-y-auto p-5">
-        {tab==="general"&&<GeneralTab value={value} update={update}/>}
-        {tab==="attributes"&&<AttributesTab value={value} update={update}/>}
-        {tab==="details"&&<DetailsTab value={value} update={update}/>}
-        {tab==="variants"&&<VariantsTab value={value} update={update}/>}
-        {tab==="shipping"&&<ShippingTab value={value} update={update}/>}
+        {tab==="general"&&<GeneralTab value={value} update={update}/>} 
+        {tab==="details"&&<DetailsTab value={value} update={update}/>} 
+        {tab==="attributes"&&<AttributesTab value={value} update={update}/>} 
+        {tab==="warranty"&&<WarrantyTab value={value} update={update}/>} 
       </div>
       <div className="flex items-center justify-between border-t border-white/10 bg-[#0d0d0d] p-4">
         <Button onClick={previous} disabled={activeIndex===0} variant="outline" className="border-white/15 bg-transparent text-white"><ChevronLeft/>ย้อนกลับ</Button>
@@ -158,15 +148,6 @@ function GeneralTab({value,update}:{value:Product;update:<K extends keyof Produc
       <div className="space-y-3">{images.map((url,index)=><div key={index} className="flex gap-2"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white/5"><ImagePlus className="h-4 w-4 text-[#ffc400]"/></span><Input value={url} onChange={e=>update("imageUrls",images.map((x,i)=>i===index?e.target.value:x))} placeholder="https://..." className="border-white/15 bg-black/40"/><Button onClick={()=>update("imageUrls",images.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div>)}</div>
       <Button onClick={()=>update("imageUrls",[...images,""])} variant="outline" className="mt-3 border-white/15 bg-transparent text-white"><Plus/>เพิ่มรูปภาพ</Button>
     </Section>
-    <Section title="ข้อมูลรถที่รองรับ" description="กรอกได้เอง ไม่ล็อกยี่ห้อ รุ่น หรือเลขตัวถัง">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="ยี่ห้อรถ"><Input value={value.vehicleMake??""} onChange={e=>update("vehicleMake",e.target.value)} placeholder="TOYOTA" className="border-white/15 bg-black/40"/></Field>
-        <Field label="รุ่นรถ"><Input value={value.model??""} onChange={e=>update("model",e.target.value)} placeholder="HIACE 300" className="border-white/15 bg-black/40"/></Field>
-        <Field label="เลขรุ่น / Chassis"><Input value={value.modelNumber??""} onChange={e=>update("modelNumber",e.target.value)} placeholder="GDH300" className="border-white/15 bg-black/40"/></Field>
-        <Field label="ปีเริ่ม"><Input type="number" value={value.yearFrom??""} onChange={e=>update("yearFrom",e.target.value?Number(e.target.value):undefined)} className="border-white/15 bg-black/40"/></Field>
-        <Field label="ปีสิ้นสุด"><Input type="number" value={value.yearTo??""} onChange={e=>update("yearTo",e.target.value?Number(e.target.value):undefined)} className="border-white/15 bg-black/40"/></Field>
-      </div>
-    </Section>
     <div className="flex items-center justify-between rounded-xl border border-white/10 p-4"><div><p className="font-bold">แสดงสินค้าบนเว็บไซต์</p><p className="text-xs text-zinc-500">ปิดเพื่อซ่อนสินค้าโดยไม่ลบข้อมูล</p></div><Switch checked={value.active!==false} onCheckedChange={checked=>update("active",checked)}/></div>
   </div>;
 }
@@ -174,16 +155,24 @@ function GeneralTab({value,update}:{value:Product;update:<K extends keyof Produc
 function AttributesTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){
   const rows=value.attributes??[];
   const set=(next:ProductAttribute[])=>update("attributes",next);
-  return <Section title="คุณลักษณะของสินค้า" description="เพิ่มหัวข้อและค่าได้เอง เช่น วัสดุ, เทคโนโลยี, ประเภทรถ">
+  return <div className="space-y-6"><Section title="ข้อมูลรถที่รองรับ" description="ใช้เป็นตัวกรองในหน้า Customer UI">
+    <div className="grid gap-4 sm:grid-cols-3"><Field label="ยี่ห้อรถ"><Input value={value.vehicleMake??""} onChange={e=>update("vehicleMake",e.target.value)} placeholder="TOYOTA" className="border-white/15 bg-black/40"/></Field><Field label="รุ่นรถ"><Input value={value.model??""} onChange={e=>update("model",e.target.value)} placeholder="HIACE 300" className="border-white/15 bg-black/40"/></Field><Field label="เลขรุ่น / Chassis"><Input value={value.modelNumber??""} onChange={e=>update("modelNumber",e.target.value)} placeholder="GDH300" className="border-white/15 bg-black/40"/></Field><Field label="ปีเริ่ม"><Input type="number" value={value.yearFrom??""} onChange={e=>update("yearFrom",e.target.value?Number(e.target.value):undefined)} className="border-white/15 bg-black/40"/></Field><Field label="ปีสิ้นสุด"><Input type="number" value={value.yearTo??""} onChange={e=>update("yearTo",e.target.value?Number(e.target.value):undefined)} className="border-white/15 bg-black/40"/></Field></div>
+  </Section><Section title="ข้อมูลจำเพาะ" description="เพิ่มหัวข้อและค่าได้เอง ลูกค้าจะเห็นในแท็บข้อมูลจำเพาะ">
     <div className="space-y-3">{rows.map((row,index)=><div key={index} className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]"><Input value={row.name} onChange={e=>set(rows.map((x,i)=>i===index?{...x,name:e.target.value}:x))} placeholder="ชื่อคุณลักษณะ" className="border-white/15 bg-black/40"/><Input value={row.value} onChange={e=>set(rows.map((x,i)=>i===index?{...x,value:e.target.value}:x))} placeholder="ค่า" className="border-white/15 bg-black/40"/><Button onClick={()=>set(rows.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div>)}</div>
     <Button onClick={()=>set([...rows,{name:"",value:""}])} variant="outline" className="mt-4 border-white/15 bg-transparent text-white"><Plus/>เพิ่มคุณลักษณะ</Button>
-  </Section>;
+  </Section></div>;
 }
 
 function DetailsTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){
-  return <Section title="รายละเอียดสินค้า" description="ใส่วิธีใช้ คุณสมบัติ การติดตั้ง การรับประกัน หรือข้อมูลเพิ่มเติม">
-    <Textarea value={value.description??""} onChange={e=>update("description",e.target.value)} placeholder={"รายละเอียดสินค้า\n\n• จุดเด่น\n• รุ่นที่รองรับ\n• วิธีติดตั้ง\n• การรับประกัน"} className="min-h-[360px] border-white/15 bg-black/40 leading-7"/>
+  return <Section title="รายละเอียดสินค้า" description="เนื้อหานี้จะแสดงในแท็บรายละเอียดของหน้า Customer UI">
+    <Textarea value={value.description??""} onChange={e=>update("description",e.target.value)} placeholder={"รายละเอียดสินค้า\n\n• จุดเด่น\n• เทคโนโลยี\n• คำแนะนำการติดตั้ง"} className="min-h-[360px] border-white/15 bg-black/40 leading-7"/>
   </Section>;
+}
+
+function WarrantyTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){
+  const warranty=value.warranty??{};
+  const set=(key:keyof typeof warranty,next:string)=>update("warranty",{...warranty,[key]:next});
+  return <Section title="การรับประกัน" description="ข้อมูลนี้จะแสดงในแท็บการรับประกันของหน้า Customer UI"><div className="grid gap-4 sm:grid-cols-2"><Field label="ระยะรับประกัน"><Input value={warranty.duration??""} onChange={e=>set("duration",e.target.value)} placeholder="เช่น 1 ปี (ไม่จำกัดระยะทาง)" className="border-white/15 bg-black/40"/></Field><Field label="เงื่อนไขหลัก"><Input value={warranty.conditions??""} onChange={e=>set("conditions",e.target.value)} placeholder="เช่น รับประกันความบกพร่องจากการผลิต" className="border-white/15 bg-black/40"/></Field><div className="sm:col-span-2"><Field label="หมายเหตุและเงื่อนไขเพิ่มเติม"><Textarea value={warranty.note??""} onChange={e=>set("note",e.target.value)} placeholder="รายละเอียดข้อยกเว้น ขั้นตอนตรวจสอบ และเงื่อนไขการรับประกัน" className="min-h-52 border-white/15 bg-black/40 leading-7"/></Field></div></div></Section>;
 }
 
 function VariantsTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){
