@@ -25,7 +25,8 @@ const tabs:{id:TabId;label:string;icon:typeof Boxes}[]=[
 const createProduct=():Product=>({
   id:"",name:"",vehicleMake:"",model:"",modelNumber:"",category:"",position:"",
   price:0,stock:0,tag:"NEW",active:true,brand:"CSA",shortDescription:"",
-  description:"",imageUrls:[],attributes:[],warranty:{duration:"1 ปี",conditions:"รับประกันความบกพร่องจากการผลิต",note:""},
+  nameEn:"",shortDescriptionEn:"",description:"",descriptionEn:"",imageUrls:[],attributes:[],
+  warranty:{duration:"1 ปี",conditions:"รับประกันความบกพร่องจากการผลิต",note:"",durationEn:"1 year",conditionsEn:"Manufacturing defects",noteEn:""},
 });
 const copyProduct=(item:Product):Product=>JSON.parse(JSON.stringify(item)) as Product;
 
@@ -132,21 +133,38 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
 
 function GeneralTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){
   const images=value.imageUrls??[];
+  const [uploading,setUploading]=useState(false);
+  const [uploadError,setUploadError]=useState("");
+  const upload=async(file?:File)=>{
+    if(!file)return;
+    setUploading(true);setUploadError("");
+    try{
+      const form=new FormData();form.append("file",file);
+      const response=await fetch("/api/upload",{method:"POST",body:form});
+      const data=await response.json();
+      if(!response.ok||!data.url)throw new Error(data.error||"อัปโหลดรูปไม่สำเร็จ");
+      update("imageUrls",[...images,String(data.url)]);
+    }catch(error){setUploadError(error instanceof Error?error.message:"อัปโหลดรูปไม่สำเร็จ")}
+    finally{setUploading(false)}
+  };
   return <div className="space-y-6">
     <Section title="ข้อมูลทั่วไป" description="ข้อมูลหลักที่ลูกค้าจะเห็นบนเว็บไซต์">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="SKU *"><Input value={value.id} onChange={e=>update("id",e.target.value.toUpperCase())} placeholder="CSA-H3-F01" className="border-white/15 bg-black/40 font-mono"/></Field>
         <Field label="ชื่อสินค้า *"><Input value={value.name} onChange={e=>update("name",e.target.value)} placeholder="ชื่อสินค้าที่แสดง" className="border-white/15 bg-black/40"/></Field>
+        <Field label="ชื่อสินค้า (English)"><Input value={value.nameEn??""} onChange={e=>update("nameEn",e.target.value)} placeholder="Product name" className="border-white/15 bg-black/40"/></Field>
         <Field label="แบรนด์"><Input value={value.brand??""} onChange={e=>update("brand",e.target.value)} placeholder="เพิ่มแบรนด์เอง" className="border-white/15 bg-black/40"/></Field>
         <Field label="หมวดหมู่"><Input value={value.category??""} onChange={e=>update("category",e.target.value)} placeholder="เช่น โช้คอัพ, สปริง, อุปกรณ์เสริม" className="border-white/15 bg-black/40"/></Field>
         <Field label="ตำแหน่งสินค้า"><Input value={value.position??""} onChange={e=>update("position",e.target.value)} placeholder="เช่น หน้า, หลัง, ทั้งชุด" className="border-white/15 bg-black/40"/></Field>
         <Field label="ป้ายสินค้า"><Input value={value.tag} onChange={e=>update("tag",e.target.value)} placeholder="NEW / BEST SELLER" className="border-white/15 bg-black/40"/></Field>
-        <div className="sm:col-span-2"><Field label="คำอธิบายสั้น"><Textarea value={value.shortDescription??""} onChange={e=>update("shortDescription",e.target.value)} placeholder="สรุปจุดเด่นสินค้า" className="min-h-20 border-white/15 bg-black/40"/></Field></div>
+        <Field label="คำอธิบายสั้น (ไทย)"><Textarea value={value.shortDescription??""} onChange={e=>update("shortDescription",e.target.value)} placeholder="สรุปจุดเด่นสินค้า" className="min-h-20 border-white/15 bg-black/40"/></Field>
+        <Field label="คำอธิบายสั้น (English)"><Textarea value={value.shortDescriptionEn??""} onChange={e=>update("shortDescriptionEn",e.target.value)} placeholder="Short product description" className="min-h-20 border-white/15 bg-black/40"/></Field>
       </div>
     </Section>
-    <Section title="รูปภาพสินค้า" description="เพิ่มลิงก์รูปภาพได้หลายรูปและจัดการเอง">
-      <div className="space-y-3">{images.map((url,index)=><div key={index} className="flex gap-2"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white/5"><ImagePlus className="h-4 w-4 text-[#ffc400]"/></span><Input value={url} onChange={e=>update("imageUrls",images.map((x,i)=>i===index?e.target.value:x))} placeholder="https://..." className="border-white/15 bg-black/40"/><Button onClick={()=>update("imageUrls",images.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div>)}</div>
-      <Button onClick={()=>update("imageUrls",[...images,""])} variant="outline" className="mt-3 border-white/15 bg-transparent text-white"><Plus/>เพิ่มรูปภาพ</Button>
+    <Section title="รูปภาพสินค้า" description="อัปโหลดรูปจากเครื่อง หรือวางลิงก์รูปภาพ แล้วจัดลำดับได้เอง">
+      <div className="space-y-3">{images.map((url,index)=><div key={`${url}-${index}`} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-[72px_1fr_auto] sm:items-center">{url?<img src={url} alt="" className="h-16 w-16 rounded-lg bg-white object-contain p-1"/>:<span className="grid h-16 w-16 place-items-center rounded-lg bg-white/5"><ImagePlus className="h-5 w-5 text-[#ffc400]"/></span>}<div><Input value={url} onChange={e=>update("imageUrls",images.map((x,i)=>i===index?e.target.value:x))} placeholder="https://..." className="border-white/15 bg-black/40"/><div className="mt-2 flex gap-2"><Button type="button" disabled={index===0} onClick={()=>{const next=[...images];[next[index-1],next[index]]=[next[index],next[index-1]];update("imageUrls",next)}} size="sm" variant="outline" className="border-white/15 bg-transparent text-white">เลื่อนขึ้น</Button><Button type="button" disabled={index===images.length-1} onClick={()=>{const next=[...images];[next[index+1],next[index]]=[next[index],next[index+1]];update("imageUrls",next)}} size="sm" variant="outline" className="border-white/15 bg-transparent text-white">เลื่อนลง</Button></div></div><Button type="button" onClick={()=>update("imageUrls",images.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div>)}</div>
+      <div className="mt-3 flex flex-wrap gap-2"><label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#ffc400] px-4 text-sm font-black text-black"><ImagePlus className="h-4 w-4"/>{uploading?"กำลังอัปโหลด…":"อัปโหลดรูปสินค้า"}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" disabled={uploading} onChange={e=>{void upload(e.target.files?.[0]);e.currentTarget.value=""}}/></label><Button type="button" onClick={()=>update("imageUrls",[...images,""])} variant="outline" className="border-white/15 bg-transparent text-white"><Plus/>เพิ่มด้วยลิงก์</Button></div>
+      {uploadError&&<p className="mt-2 text-sm font-bold text-red-400">{uploadError}</p>}
     </Section>
     <div className="flex items-center justify-between rounded-xl border border-white/10 p-4"><div><p className="font-bold">แสดงสินค้าบนเว็บไซต์</p><p className="text-xs text-zinc-500">ปิดเพื่อซ่อนสินค้าโดยไม่ลบข้อมูล</p></div><Switch checked={value.active!==false} onCheckedChange={checked=>update("active",checked)}/></div>
   </div>;
@@ -158,21 +176,21 @@ function AttributesTab({value,update}:{value:Product;update:<K extends keyof Pro
   return <div className="space-y-6"><Section title="ข้อมูลรถที่รองรับ" description="ใช้เป็นตัวกรองในหน้า Customer UI">
     <div className="grid gap-4 sm:grid-cols-3"><Field label="ยี่ห้อรถ"><Input value={value.vehicleMake??""} onChange={e=>update("vehicleMake",e.target.value)} placeholder="TOYOTA" className="border-white/15 bg-black/40"/></Field><Field label="รุ่นรถ"><Input value={value.model??""} onChange={e=>update("model",e.target.value)} placeholder="HIACE 300" className="border-white/15 bg-black/40"/></Field><Field label="เลขรุ่น / Chassis"><Input value={value.modelNumber??""} onChange={e=>update("modelNumber",e.target.value)} placeholder="GDH300" className="border-white/15 bg-black/40"/></Field><Field label="ปีเริ่ม"><Input type="number" value={value.yearFrom??""} onChange={e=>update("yearFrom",e.target.value?Number(e.target.value):undefined)} className="border-white/15 bg-black/40"/></Field><Field label="ปีสิ้นสุด"><Input type="number" value={value.yearTo??""} onChange={e=>update("yearTo",e.target.value?Number(e.target.value):undefined)} className="border-white/15 bg-black/40"/></Field></div>
   </Section><Section title="ข้อมูลจำเพาะ" description="เพิ่มหัวข้อและค่าได้เอง ลูกค้าจะเห็นในแท็บข้อมูลจำเพาะ">
-    <div className="space-y-3">{rows.map((row,index)=><div key={index} className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]"><Input value={row.name} onChange={e=>set(rows.map((x,i)=>i===index?{...x,name:e.target.value}:x))} placeholder="ชื่อคุณลักษณะ" className="border-white/15 bg-black/40"/><Input value={row.value} onChange={e=>set(rows.map((x,i)=>i===index?{...x,value:e.target.value}:x))} placeholder="ค่า" className="border-white/15 bg-black/40"/><Button onClick={()=>set(rows.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div>)}</div>
-    <Button onClick={()=>set([...rows,{name:"",value:""}])} variant="outline" className="mt-4 border-white/15 bg-transparent text-white"><Plus/>เพิ่มคุณลักษณะ</Button>
+    <div className="space-y-3">{rows.map((row,index)=><div key={index} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-2"><Input value={row.name} onChange={e=>set(rows.map((x,i)=>i===index?{...x,name:e.target.value}:x))} placeholder="หัวข้อ (ไทย)" className="border-white/15 bg-black/40"/><Input value={row.value} onChange={e=>set(rows.map((x,i)=>i===index?{...x,value:e.target.value}:x))} placeholder="ค่า (ไทย)" className="border-white/15 bg-black/40"/><Input value={row.nameEn??""} onChange={e=>set(rows.map((x,i)=>i===index?{...x,nameEn:e.target.value}:x))} placeholder="Label (English)" className="border-white/15 bg-black/40"/><div className="flex gap-2"><Input value={row.valueEn??""} onChange={e=>set(rows.map((x,i)=>i===index?{...x,valueEn:e.target.value}:x))} placeholder="Value (English)" className="border-white/15 bg-black/40"/><Button type="button" onClick={()=>set(rows.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div></div>)}</div>
+    <Button type="button" onClick={()=>set([...rows,{name:"",value:"",nameEn:"",valueEn:""}])} variant="outline" className="mt-4 border-white/15 bg-transparent text-white"><Plus/>เพิ่มคุณลักษณะ</Button>
   </Section></div>;
 }
 
 function DetailsTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){
-  return <Section title="รายละเอียดสินค้า" description="เนื้อหานี้จะแสดงในแท็บรายละเอียดของหน้า Customer UI">
-    <Textarea value={value.description??""} onChange={e=>update("description",e.target.value)} placeholder={"รายละเอียดสินค้า\n\n• จุดเด่น\n• เทคโนโลยี\n• คำแนะนำการติดตั้ง"} className="min-h-[360px] border-white/15 bg-black/40 leading-7"/>
+  return <Section title="รายละเอียดสินค้า" description="กรอกทั้งสองภาษาเพื่อให้ปุ่ม TH/EN สลับได้ทั้งระบบ">
+    <div className="grid gap-4 lg:grid-cols-2"><Field label="รายละเอียด (ไทย)"><Textarea value={value.description??""} onChange={e=>update("description",e.target.value)} placeholder={"รายละเอียดสินค้า\n\n• จุดเด่น\n• เทคโนโลยี\n• คำแนะนำการติดตั้ง"} className="min-h-[360px] border-white/15 bg-black/40 leading-7"/></Field><Field label="Details (English)"><Textarea value={value.descriptionEn??""} onChange={e=>update("descriptionEn",e.target.value)} placeholder={"Product details\n\n• Highlights\n• Technology\n• Installation"} className="min-h-[360px] border-white/15 bg-black/40 leading-7"/></Field></div>
   </Section>;
 }
 
 function WarrantyTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){
   const warranty=value.warranty??{};
   const set=(key:keyof typeof warranty,next:string)=>update("warranty",{...warranty,[key]:next});
-  return <Section title="การรับประกัน" description="ข้อมูลนี้จะแสดงในแท็บการรับประกันของหน้า Customer UI"><div className="grid gap-4 sm:grid-cols-2"><Field label="ระยะรับประกัน"><Input value={warranty.duration??""} onChange={e=>set("duration",e.target.value)} placeholder="เช่น 1 ปี (ไม่จำกัดระยะทาง)" className="border-white/15 bg-black/40"/></Field><Field label="เงื่อนไขหลัก"><Input value={warranty.conditions??""} onChange={e=>set("conditions",e.target.value)} placeholder="เช่น รับประกันความบกพร่องจากการผลิต" className="border-white/15 bg-black/40"/></Field><div className="sm:col-span-2"><Field label="หมายเหตุและเงื่อนไขเพิ่มเติม"><Textarea value={warranty.note??""} onChange={e=>set("note",e.target.value)} placeholder="รายละเอียดข้อยกเว้น ขั้นตอนตรวจสอบ และเงื่อนไขการรับประกัน" className="min-h-52 border-white/15 bg-black/40 leading-7"/></Field></div></div></Section>;
+  return <Section title="การรับประกัน" description="ข้อมูลนี้จะแสดงในแท็บการรับประกันของหน้า Customer UI"><div className="grid gap-4 sm:grid-cols-2"><Field label="ระยะรับประกัน (ไทย)"><Input value={warranty.duration??""} onChange={e=>set("duration",e.target.value)} placeholder="เช่น 1 ปี (ไม่จำกัดระยะทาง)" className="border-white/15 bg-black/40"/></Field><Field label="Warranty period (English)"><Input value={warranty.durationEn??""} onChange={e=>set("durationEn",e.target.value)} placeholder="1 year" className="border-white/15 bg-black/40"/></Field><Field label="เงื่อนไขหลัก (ไทย)"><Input value={warranty.conditions??""} onChange={e=>set("conditions",e.target.value)} placeholder="รับประกันความบกพร่องจากการผลิต" className="border-white/15 bg-black/40"/></Field><Field label="Conditions (English)"><Input value={warranty.conditionsEn??""} onChange={e=>set("conditionsEn",e.target.value)} placeholder="Manufacturing defects" className="border-white/15 bg-black/40"/></Field><Field label="หมายเหตุ (ไทย)"><Textarea value={warranty.note??""} onChange={e=>set("note",e.target.value)} className="min-h-44 border-white/15 bg-black/40 leading-7"/></Field><Field label="Notes (English)"><Textarea value={warranty.noteEn??""} onChange={e=>set("noteEn",e.target.value)} className="min-h-44 border-white/15 bg-black/40 leading-7"/></Field></div></Section>;
 }
 
 function VariantsTab({value,update}:{value:Product;update:<K extends keyof Product>(key:K,next:Product[K])=>void}){

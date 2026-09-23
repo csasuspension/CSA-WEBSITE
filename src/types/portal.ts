@@ -5,17 +5,21 @@ export type View =
   | "promotions" | "branches" | "advice" | "about" | "news" | "clips"
   | "faq" | "careers" | "contact" | "profile" | "admin";
 
-export type ProductAttribute = { name: string; value: string };
+export type ProductAttribute = { name: string; value: string; nameEn?: string; valueEn?: string };
 export type ProductOptionGroup = { name: string; values: string[] };
 export type ProductVariant = { name: string; sku: string; price: number; stock: number; weight?: number };
 export type ProductShipping = { weight?: number; width?: number; length?: number; height?: number };
-export type ProductWarranty = { duration?: string; conditions?: string; note?: string };
+export type ProductWarranty = {
+  duration?: string; conditions?: string; note?: string;
+  durationEn?: string; conditionsEn?: string; noteEn?: string;
+};
 
 export type Product = {
   id: string; name: string; model: string; modelNumber?: string; vehicleMake?: string;
   category?: string; position?: string; yearFrom?: number; yearTo?: number;
   price: number; stock?: number; tag: string; active?: boolean;
-  brand?: string; shortDescription?: string; description?: string; imageUrls?: string[];
+  nameEn?: string; brand?: string; shortDescription?: string; shortDescriptionEn?: string;
+  description?: string; descriptionEn?: string; imageUrls?: string[];
   attributes?: ProductAttribute[]; optionGroups?: ProductOptionGroup[];
   variants?: ProductVariant[]; shipping?: ProductShipping; warranty?: ProductWarranty;
 };

@@ -1,0 +1,12 @@
+{
+  "name": "CSA High Performance Suspension",
+  "short_name": "CSA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090909",
+  "theme_color": "#ffc400",
+  "icons": [
+    {"src":"/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"},
+    {"src":"/apple-touch-icon.png","sizes":"180x180","type":"image/png"}
+  ]
+}

@@ -23,13 +23,14 @@ function ensureExtendedSchema(){
 }
 function extended(product:Product){
   return {
-    brand:String(product.brand??""),shortDescription:String(product.shortDescription??""),
-    description:String(product.description??""),
+    nameEn:String(product.nameEn??""),brand:String(product.brand??""),
+    shortDescription:String(product.shortDescription??""),shortDescriptionEn:String(product.shortDescriptionEn??""),
+    description:String(product.description??""),descriptionEn:String(product.descriptionEn??""),
     imageUrls:Array.isArray(product.imageUrls)?product.imageUrls.map(String).filter(Boolean):[],
     attributes:Array.isArray(product.attributes)?product.attributes:[],
     optionGroups:Array.isArray(product.optionGroups)?product.optionGroups:[],
     variants:Array.isArray(product.variants)?product.variants:[],
-    shipping:product.shipping??{},
+    shipping:product.shipping??{},warranty:product.warranty??{},
   };
 }
 function fromRow(row:ProductRow):Product{
