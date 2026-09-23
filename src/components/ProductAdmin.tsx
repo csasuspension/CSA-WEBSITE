@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Archive, Boxes, CheckCircle2, ChevronLeft, ChevronRight, Edit3, ImagePlus,
   Layers3, Loader2, PackagePlus, Plus, RefreshCw, Search, Settings2,
-  ShippingBox, SlidersHorizontal, Trash2,
+  PackageCheck, SlidersHorizontal, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,7 +20,7 @@ const tabs:{id:TabId;label:string;icon:typeof Boxes}[]=[
   {id:"attributes",label:"คุณลักษณะ",icon:Settings2},
   {id:"details",label:"รายละเอียด",icon:Layers3},
   {id:"variants",label:"ตัวเลือกสินค้า",icon:SlidersHorizontal},
-  {id:"shipping",label:"การจัดส่ง",icon:ShippingBox},
+  {id:"shipping",label:"การจัดส่ง",icon:PackageCheck},
 ];
 
 const createProduct=():Product=>({
