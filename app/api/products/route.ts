@@ -16,6 +16,15 @@ let schemaReady:Promise<void>|undefined;
 function db(){if(!env.DB)throw new Error("Database is unavailable");return env.DB}
 function ensureExtendedSchema(){
   if(!schemaReady)schemaReady=(async()=>{
+    await db().prepare(`CREATE TABLE IF NOT EXISTS catalog_products (
+      sku TEXT PRIMARY KEY, name TEXT NOT NULL, vehicle_make TEXT NOT NULL DEFAULT '',
+      vehicle_model TEXT NOT NULL DEFAULT '', model_number TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT '', position TEXT NOT NULL DEFAULT '',
+      year_from INTEGER, year_to INTEGER, price INTEGER NOT NULL DEFAULT 0,
+      stock INTEGER NOT NULL DEFAULT 0, tag TEXT NOT NULL DEFAULT 'CSA',
+      active INTEGER NOT NULL DEFAULT 1, product_data_json TEXT NOT NULL DEFAULT '{}',
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`).run();
     try{await db().prepare("ALTER TABLE catalog_products ADD COLUMN product_data_json TEXT NOT NULL DEFAULT '{}'").run()}
     catch(error){if(!String(error).toLowerCase().includes("duplicate column"))throw error}
   })();
