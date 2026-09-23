@@ -30,7 +30,7 @@ export default async function AdminPage() {
           <a
             href={needsAccessSetup ? ACCESS_SETTINGS_URL : ACCESS_LOGOUT_URL}
             target="_top"
-            className="mt-6 inline-flex bg-[#ffc400] px-5 py-3 font-black text-black"
+            className="mt-6 inline-flex rounded-xl bg-[#ffc400] px-5 py-3 font-black text-black transition hover:bg-[#ffd43b]"
           >
             {needsAccessSetup ? "เปิดการตั้งค่า Cloudflare Access" : "เข้าสู่ระบบด้วยบัญชีอื่น"}
           </a>
