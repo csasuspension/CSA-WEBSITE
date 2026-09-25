@@ -193,14 +193,41 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
     <section className="grid grid-cols-3 bg-black text-center">
       {[[ShockAbsorberIcon,lang==="th"?"โช้คอัพ":"SHOCKS",()=>document.getElementById("finder")?.scrollIntoView({behavior:"smooth"})],[ShieldCheck,lang==="th"?"รับประกัน":"WARRANTY",()=>go("warranty")],[BadgeCheck,lang==="th"?"ของแท้ CSA":"GENUINE CSA",()=>go("about")]].map(([I,label,action],i)=>{const Icon=I as typeof ShockAbsorberIcon;return <button key={label as string} onClick={action as ()=>void} className={`flex min-h-20 flex-col items-center justify-center gap-1.5 border-r border-white/10 px-2 text-xs font-black sm:min-h-24 sm:text-sm ${i===0?"border-t-4 border-t-[#ffc400] bg-white text-black":"text-white"}`}><Icon className="h-6 w-6 sm:h-7 sm:w-7"/>{label as string}</button>})}
     </section>
-    <section id="finder" className="bg-[#171717] px-5 py-10 text-black sm:px-10 sm:py-14">
-      <div className="mx-auto max-w-4xl rounded-[28px] bg-[#ffc400] p-5 shadow-2xl sm:p-7"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-black text-white"><ShockAbsorberIcon className="h-6 w-6"/></span><h2 className="font-display text-2xl sm:text-3xl">{lang==="th"?"โช้คอัพ":"Shock absorbers"}</h2></div><button onClick={clearFinder} className="rounded-xl px-3 py-2 text-sm font-bold underline underline-offset-4">{lang==="th"?"ล้างทั้งหมด":"Clear all"}</button></div>
-      <div className="mt-5 space-y-3">
-        <VehicleFinderSelect number="01" value={make} setValue={value=>{setMake(value);setChosen("");setYear("")}} options={makes} label={lang==="th"?"เลือกแบรนด์":"Select brand"}/>
-        <VehicleFinderSelect number="02" value={chosen} setValue={value=>{setChosen(value);setYear("")}} options={models} disabled={!make} label={lang==="th"?"เลือกรุ่นรถ":"Select vehicle model"}/>
-        <VehicleFinderSelect number="03" value={year} setValue={setYear} options={years} disabled={!chosen} label={lang==="th"?"ปีที่ผลิต":"Production year"}/>
-        <Button disabled={!make||!chosen||!year} onClick={()=>setModel(chosen)} className="mt-4 h-14 w-full bg-black text-base font-black text-white hover:bg-zinc-800"><Search className="h-5 w-5"/>{lang==="th"?"ค้นหา":"SEARCH"}</Button>
-      </div></div>
+    <section id="finder" className="relative overflow-hidden bg-[#151515] px-5 py-10 text-black sm:px-10 sm:py-16">
+      <div aria-hidden="true" className="absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-[#ffc400]/10 blur-3xl"/>
+      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[28px] border border-white/10 bg-[#090909] shadow-[0_28px_80px_rgba(0,0,0,.45)]">
+        <div className="grid lg:grid-cols-[310px_1fr]">
+          <div className="relative overflow-hidden bg-[#ffc400] p-6 sm:p-8 lg:min-h-[430px]">
+            <span aria-hidden="true" className="absolute -right-14 -top-12 h-48 w-48 rounded-full border-[34px] border-black/5"/>
+            <div className="relative flex h-full flex-col">
+              <div className="flex items-start justify-between gap-4 lg:block">
+                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-black text-white shadow-[0_6px_0_rgba(255,255,255,.45)]"><ShockAbsorberIcon className="h-8 w-8"/></span>
+                <button onClick={clearFinder} className="rounded-full border border-black/25 px-4 py-2 text-xs font-black transition hover:bg-black hover:text-white lg:absolute lg:bottom-0 lg:left-0">{lang==="th"?"ล้างทั้งหมด":"Clear all"}</button>
+              </div>
+              <div className="relative mt-6 lg:mt-10">
+                <p className="text-[11px] font-black uppercase tracking-[.22em] opacity-60">CSA FITMENT FINDER</p>
+                <h2 className="mt-2 font-display text-4xl leading-none sm:text-5xl">{lang==="th"?"โช้คอัพ":"Shock absorbers"}</h2>
+                <p className="mt-4 max-w-[240px] text-sm font-bold leading-6 opacity-70">{lang==="th"?"เลือกข้อมูลรถตามลำดับ เพื่อค้นหาโช้คอัพที่ตรงรุ่น":"Choose your vehicle step by step to find the exact fit."}</p>
+              </div>
+              <div className="mt-6 flex gap-2 lg:mt-auto lg:mb-14">
+                {[Boolean(make),Boolean(chosen),Boolean(year)].map((done,index)=><span key={index} className={`h-1.5 flex-1 rounded-full transition-colors ${done?"bg-black":"bg-black/20"}`}/>) }
+              </div>
+            </div>
+          </div>
+          <div className="p-5 sm:p-8 lg:p-10">
+            <div className="mb-5 flex items-center justify-between text-white">
+              <p className="text-xs font-black uppercase tracking-[.18em] text-zinc-500">{lang==="th"?"ข้อมูลรถของคุณ":"Your vehicle"}</p>
+              <p className="text-xs font-bold text-[#ffc400]">{[make,chosen,year].filter(Boolean).length}/3</p>
+            </div>
+            <div className="space-y-4">
+              <VehicleFinderSelect number="01" value={make} setValue={value=>{setMake(value);setChosen("");setYear("")}} options={makes} label={lang==="th"?"เลือกแบรนด์":"Select brand"}/>
+              <VehicleFinderSelect number="02" value={chosen} setValue={value=>{setChosen(value);setYear("")}} options={models} disabled={!make} label={lang==="th"?"เลือกรุ่นรถ":"Select vehicle model"}/>
+              <VehicleFinderSelect number="03" value={year} setValue={setYear} options={years} disabled={!chosen} label={lang==="th"?"ปีที่ผลิต":"Production year"}/>
+              <Button disabled={!make||!chosen||!year} onClick={()=>{setModel(chosen);window.setTimeout(()=>document.getElementById("product-catalog")?.scrollIntoView({behavior:"smooth"}),100)}} className="mt-2 h-14 w-full rounded-2xl bg-[#ffc400] text-base font-black text-black shadow-[0_6px_0_#6f5600] transition hover:-translate-y-0.5 hover:bg-white disabled:shadow-none"><Search className="h-5 w-5"/>{lang==="th"?"ค้นหาโช้คอัพที่ตรงรุ่น":"Find matching shocks"}</Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
     <section id="product-catalog" className="bg-[#f2f2f2] px-5 py-10 text-black sm:px-10 sm:py-14">
       <div className="mx-auto max-w-6xl"><div className="mb-6 flex items-center justify-between gap-3 border-b border-zinc-300 pb-5"><button onClick={()=>setFiltersOpen(x=>!x)} className="flex items-center gap-3 text-lg font-black"><SlidersHorizontal/>{lang==="th"?"แสดงตัวกรอง":"Filters"}<ChevronDown className={`h-4 w-4 transition ${filtersOpen?"rotate-180":""}`}/></button><div className="flex gap-2"><button aria-label="Grid view" onClick={()=>setLayout("grid")} className={`grid h-11 w-11 place-items-center rounded-xl ${layout==="grid"?"bg-black text-white":"bg-white text-zinc-400"}`}><Grid2X2/></button><button aria-label="List view" onClick={()=>setLayout("list")} className={`grid h-11 w-11 place-items-center rounded-xl ${layout==="list"?"bg-black text-white":"bg-white text-zinc-400"}`}><List/></button></div></div>
