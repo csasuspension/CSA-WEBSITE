@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
-import { requireCsaAdmin } from "@/app/admin-auth";
+import { requirePermission } from "@/app/admin-auth";
+import { writeAuditLog } from "@/app/admin-audit";
 import { defaultSiteContent, type SiteContent } from "@/src/data/siteContent";
 
 export const dynamic="force-dynamic";
@@ -14,6 +15,6 @@ export async function GET(){
 }
 
 export async function POST(request:NextRequest){
-  try{if(!(await requireCsaAdmin()).authorized)return NextResponse.json({error:"Admin access required"},{status:403});await ensure();const content=await request.json() as SiteContent;await database().prepare("INSERT INTO site_content (id,content_json,updated_at) VALUES ('main',?,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET content_json=excluded.content_json,updated_at=CURRENT_TIMESTAMP").bind(JSON.stringify(content)).run();return NextResponse.json({ok:true})}
+  try{const access=await requirePermission("content");if(!access.authorized)return NextResponse.json({error:"Permission denied"},{status:403});await ensure();const content=await request.json() as SiteContent;await database().prepare("INSERT INTO site_content (id,content_json,updated_at) VALUES ('main',?,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET content_json=excluded.content_json,updated_at=CURRENT_TIMESTAMP").bind(JSON.stringify(content)).run();await writeAuditLog({email:access.user.email,action:"website.save",entity:"site_content",entityId:"main"});return NextResponse.json({ok:true})}
   catch(error){console.error("site-content:save",error);return NextResponse.json({error:"Could not save website content"},{status:503})}
 }

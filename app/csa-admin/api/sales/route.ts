@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
-import { requireCsaAdmin } from "@/app/admin-auth";
+import { requirePermission } from "@/app/admin-auth";
+import { writeAuditLog } from "@/app/admin-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ function nextId(kind:Kind){const prefix={lead:"LD",customer:"CU",quote:"QT",orde
 
 export async function GET(){
   try{
-    if(!(await requireCsaAdmin()).authorized)return NextResponse.json({error:"Admin access required"},{status:403});
+    if(!(await requirePermission("sales")).authorized)return NextResponse.json({error:"Permission denied"},{status:403});
     await ensureSchema();
     const result=await db().prepare("SELECT id,kind,status,data_json,created_at,updated_at FROM sales_records ORDER BY updated_at DESC LIMIT 500").all<Row>();
     return NextResponse.json({records:result.results.map(record)});
@@ -31,8 +32,8 @@ export async function GET(){
 
 export async function POST(request:NextRequest){
   try{
-    const access=await requireCsaAdmin();
-    if(!access.authorized)return NextResponse.json({error:"Admin access required"},{status:403});
+    const access=await requirePermission("sales");
+    if(!access.authorized)return NextResponse.json({error:"Permission denied"},{status:403});
     await ensureSchema();
     const body=await request.json();
     const kind=String(body.kind??"") as Kind;
@@ -44,6 +45,7 @@ export async function POST(request:NextRequest){
       VALUES (?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
       ON CONFLICT(id) DO UPDATE SET status=excluded.status,data_json=excluded.data_json,updated_at=CURRENT_TIMESTAMP`)
       .bind(id,kind,status,JSON.stringify(data)).run();
+    await writeAuditLog({email:access.user.email,action:body.id?"record.update":"record.create",entity:kind,entityId:id,detail:{status}});
     return NextResponse.json({ok:true,id,kind,status,data},{status:201});
   }catch(error){console.error("sales:save",error);return NextResponse.json({error:"Could not save sales record"},{status:503})}
 }

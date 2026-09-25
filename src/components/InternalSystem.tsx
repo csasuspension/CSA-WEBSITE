@@ -1,36 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, FileText, Globe2, LayoutDashboard, Menu, PackageCheck, ShoppingBag, Users, X } from "lucide-react";
+import { BarChart3, BellRing, Boxes, CreditCard, FileText, Globe2, History, LayoutDashboard, MapPin, Menu, PackageCheck, Send, ShieldCheck, ShoppingBag, Tags, Truck, Users, Wrench, X } from "lucide-react";
 import type { Lang } from "@/src/types/portal";
 import { ProductAdmin } from "@/src/components/ProductAdmin";
 import { WebsiteAdmin } from "@/src/components/WebsiteAdmin";
 import { SalesAdmin,type SalesModule } from "@/src/components/SalesAdmin";
+import { OperationsAdmin,type OperationModule } from "@/src/components/OperationsAdmin";
+import type { AdminPermission } from "@/app/admin-auth";
 
-type Module=SalesModule|"product"|"website";
-const modules:{id:Module;label:string;icon:typeof LayoutDashboard;group:"sales"|"content"}[]=[
-  {id:"dashboard",label:"Dashboard",icon:LayoutDashboard,group:"sales"},
-  {id:"leads",label:"Leads",icon:BarChart3,group:"sales"},
-  {id:"customers",label:"Customers",icon:Users,group:"sales"},
-  {id:"quotes",label:"Quotations",icon:FileText,group:"sales"},
-  {id:"orders",label:"Orders",icon:ShoppingBag,group:"sales"},
-  {id:"product",label:"Products",icon:PackageCheck,group:"content"},
-  {id:"website",label:"Website",icon:Globe2,group:"content"},
+type Module=SalesModule|OperationModule|"product"|"website";
+type Group="sales"|"after_sales"|"analysis"|"content"|"security";
+const modules:{id:Module;label:string;icon:typeof LayoutDashboard;group:Group}[]=[
+  {id:"dashboard",label:"Dashboard",icon:LayoutDashboard,group:"sales"},{id:"leads",label:"Leads",icon:BarChart3,group:"sales"},{id:"customers",label:"Customers",icon:Users,group:"sales"},{id:"quotes",label:"Quotations",icon:FileText,group:"sales"},{id:"orders",label:"Orders",icon:ShoppingBag,group:"sales"},
+  {id:"payments",label:"Payment evidence",icon:CreditCard,group:"after_sales"},{id:"shipping",label:"Shipping / Tracking",icon:Truck,group:"after_sales"},{id:"warranties",label:"Warranty",icon:ShieldCheck,group:"after_sales"},{id:"claims",label:"Claims",icon:Wrench,group:"after_sales"},{id:"serials",label:"Serial / Lot",icon:Tags,group:"after_sales"},{id:"dealers",label:"Dealers",icon:MapPin,group:"after_sales"},
+  {id:"reports",label:"Sales reports",icon:BarChart3,group:"analysis"},{id:"stock",label:"Stock alerts",icon:Boxes,group:"analysis"},{id:"reminders",label:"Follow-up reminders",icon:BellRing,group:"analysis"},{id:"line",label:"LINE notification",icon:Send,group:"analysis"},
+  {id:"product",label:"Products",icon:PackageCheck,group:"content"},{id:"website",label:"Website",icon:Globe2,group:"content"},{id:"roles",label:"Role permissions",icon:Users,group:"security"},{id:"audits",label:"Audit logs",icon:History,group:"security"},
 ];
+const groupLabels:Record<Group,string>={sales:"งานขาย",after_sales:"หลังการขาย",analysis:"วิเคราะห์และอัตโนมัติ",content:"สินค้าและเว็บไซต์",security:"ความปลอดภัย"};
+function permissionFor(module:Module):AdminPermission{if(["dashboard","leads","customers","quotes","orders","reminders"].includes(module))return "sales";if(["payments","shipping","warranties","claims","serials","dealers","line"].includes(module))return "after_sales";if(["reports"].includes(module))return "reports";if(["product","stock"].includes(module))return "inventory";if(module==="website")return "content";return "roles"}
 
-export function InternalSystem({lang,userEmail}:{lang:Lang;userEmail:string}){
-  const [active,setActive]=useState<Module>("dashboard");
-  const [menuOpen,setMenuOpen]=useState(false);
+export function InternalSystem({lang,userEmail,permissions}:{lang:Lang;userEmail:string;permissions:AdminPermission[]}){
+  const available=modules.filter(item=>permissions.includes(permissionFor(item.id)));
+  const [active,setActive]=useState<Module>(available[0]?.id??"dashboard");const [menuOpen,setMenuOpen]=useState(false);
   const navigate=(next:Module)=>{setActive(next);setMenuOpen(false);window.scrollTo({top:0,behavior:"smooth"})};
-  return <div className="min-h-[100dvh] overflow-x-clip bg-[#080808] text-white">
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0b0b]/95 px-4 py-3 backdrop-blur md:px-6"><div className="mx-auto flex max-w-[1700px] items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><button onClick={()=>setMenuOpen(x=>!x)} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 lg:hidden" aria-label="เปิดเมนู">{menuOpen?<X/>:<Menu/>}</button><div className="min-w-0"><p className="text-[11px] font-black tracking-[.2em] text-[#ffc400]">CSA SALES BACK-OFFICE</p><h1 className="truncate text-lg font-black sm:text-xl">{lang==="th"?"ระบบจัดการงานขาย":"Sales management"}</h1></div></div><div className="flex items-center gap-3"><div className="hidden text-right sm:block"><p className="max-w-56 truncate text-sm font-bold">{userEmail}</p><p className="text-xs text-emerald-400">● Admin access</p></div><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#ffc400] text-sm font-black text-black">CSA</span></div></div></header>
-    <div className="mx-auto grid max-w-[1700px] lg:grid-cols-[240px_1fr]">
-      <aside className={`${menuOpen?"block":"hidden"} fixed inset-x-0 top-[69px] z-30 max-h-[calc(100dvh-69px)] overflow-y-auto border-b border-white/10 bg-[#0d0d0d] p-3 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:sticky lg:top-[69px] lg:block lg:h-[calc(100dvh-69px)] lg:border-b-0 lg:border-r`}><NavGroup title="งานขาย" items={modules.filter(x=>x.group==="sales")} active={active} navigate={navigate}/><NavGroup title="สินค้าและเว็บไซต์" items={modules.filter(x=>x.group==="content")} active={active} navigate={navigate}/><div className="mt-5 rounded-xl border border-white/10 bg-black/30 p-3"><p className="text-xs font-bold text-zinc-400">Sales flow</p><p className="mt-2 text-xs leading-5 text-zinc-600">Lead → Quotation → Order → Payment → Shipping</p></div></aside>
-      <main className="min-w-0 p-4 pb-[calc(2rem+env(safe-area-inset-bottom))] md:p-7">{active==="product"?<ProductAdmin/>:active==="website"?<WebsiteAdmin/>:<SalesAdmin module={active} onNavigate={navigate}/>}</main>
-    </div>
-  </div>;
+  const isSales=(value:Module):value is SalesModule=>["dashboard","leads","customers","quotes","orders"].includes(value);
+  const isOperations=(value:Module):value is OperationModule=>!["dashboard","leads","customers","quotes","orders","product","website"].includes(value);
+  return <div className="min-h-[100dvh] overflow-x-clip bg-[#080808] text-white"><header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0b0b]/95 px-4 py-3 backdrop-blur md:px-6"><div className="mx-auto flex max-w-[1700px] items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><button onClick={()=>setMenuOpen(x=>!x)} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 lg:hidden" aria-label="เปิดเมนู">{menuOpen?<X/>:<Menu/>}</button><div className="min-w-0"><p className="text-[11px] font-black tracking-[.2em] text-[#ffc400]">CSA BACK-OFFICE</p><h1 className="truncate text-lg font-black sm:text-xl">{lang==="th"?"ระบบบริหารงานขายและหลังการขาย":"Sales & after-sales"}</h1></div></div><div className="flex items-center gap-3"><div className="hidden text-right sm:block"><p className="max-w-56 truncate text-sm font-bold">{userEmail}</p><p className="text-xs text-zinc-500">Cloudflare Access</p></div><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/20 bg-white text-sm font-black text-black">CSA</span></div></div></header><div className="mx-auto grid max-w-[1700px] lg:grid-cols-[260px_1fr]"><aside className={`${menuOpen?"block":"hidden"} fixed inset-x-0 top-[69px] z-30 max-h-[calc(100dvh-69px)] overflow-y-auto border-b border-white/10 bg-[#0d0d0d] p-3 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:sticky lg:top-[69px] lg:block lg:h-[calc(100dvh-69px)] lg:border-b-0 lg:border-r`}>{(["sales","after_sales","analysis","content","security"] as Group[]).map(group=><NavGroup key={group} title={groupLabels[group]} items={available.filter(x=>x.group===group)} active={active} navigate={navigate}/>)}</aside><main className="min-w-0 p-4 pb-[calc(2rem+env(safe-area-inset-bottom))] md:p-7">{active==="product"?<ProductAdmin/>:active==="website"?<WebsiteAdmin/>:isSales(active)?<SalesAdmin module={active} onNavigate={navigate}/>:isOperations(active)?<OperationsAdmin module={active}/>:null}</main></div></div>;
 }
-
-function NavGroup({title,items,active,navigate}:{title:string;items:typeof modules;active:Module;navigate:(m:Module)=>void}){
-  return <div className="mb-5"><p className="px-3 pb-2 text-[11px] font-bold uppercase tracking-widest text-zinc-600">{title}</p><nav className="space-y-1">{items.map(item=>{const Icon=item.icon;return <button key={item.id} onClick={()=>navigate(item.id)} className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${active===item.id?"bg-[#ffc400] text-black":"text-zinc-400 hover:bg-white/5 hover:text-white"}`}><Icon className="h-4 w-4 shrink-0"/><span className="flex-1">{item.label}</span></button>})}</nav></div>;
-}
+function NavGroup({title,items,active,navigate}:{title:string;items:typeof modules;active:Module;navigate:(m:Module)=>void}){return <div className="mb-5"><p className="px-3 pb-2 text-[11px] font-bold uppercase tracking-widest text-zinc-600">{title}</p><nav className="space-y-1">{items.map(item=>{const Icon=item.icon;return <button key={item.id} onClick={()=>navigate(item.id)} className={`flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 text-left text-sm font-bold transition ${active===item.id?"border-white/20 bg-white text-black":"border-transparent text-zinc-400 hover:bg-white/5 hover:text-white"}`}><Icon className={`h-4 w-4 shrink-0 ${active===item.id?"text-[#b88b00]":""}`}/><span className="flex-1">{item.label}</span></button>})}</nav></div>}

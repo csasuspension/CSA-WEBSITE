@@ -2,7 +2,8 @@ import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 import { products as defaults } from "@/src/data/products";
 import type { Product } from "@/src/types/portal";
-import { requireCsaAdmin } from "@/app/admin-auth";
+import { requirePermission } from "@/app/admin-auth";
+import { writeAuditLog } from "@/app/admin-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -54,18 +55,20 @@ function fromRow(row:ProductRow):Product{
 export async function GET(request:NextRequest){
   try{
     const includeInactive=request.nextUrl.searchParams.get("includeInactive")==="1";
-    if(includeInactive&&!(await requireCsaAdmin()).authorized)return NextResponse.json({error:"Admin access required"},{status:403});
+    if(includeInactive&&!(await requirePermission("inventory")).authorized)return NextResponse.json({error:"Permission denied"},{status:403});
     await ensureExtendedSchema();
     const result=await db().prepare("SELECT sku,name,vehicle_make,vehicle_model,model_number,category,position,year_from,year_to,price,stock,tag,active,product_data_json,updated_at FROM catalog_products ORDER BY updated_at DESC").all<ProductRow>();
     const overrides=new Map(result.results.map(row=>[row.sku,fromRow(row)]));
-    const merged=[...defaults.map(item=>overrides.get(item.id)??item),...result.results.filter(row=>!defaults.some(item=>item.id===row.sku)).map(fromRow)];
+    const deleted=new Set(result.results.filter(row=>row.active===-1).map(row=>row.sku));
+    const merged=[...defaults.filter(item=>!deleted.has(item.id)).map(item=>overrides.get(item.id)??item),...result.results.filter(row=>row.active!==-1&&!defaults.some(item=>item.id===row.sku)).map(fromRow)];
     return NextResponse.json({products:merged.filter(item=>includeInactive||item.active!==false)});
   }catch(error){console.error("products:list",error);return NextResponse.json({error:"Product data is temporarily unavailable"},{status:503})}
 }
 
 export async function POST(request:NextRequest){
   try{
-    if(!(await requireCsaAdmin()).authorized)return NextResponse.json({error:"Admin access required"},{status:403});
+    const access=await requirePermission("inventory");
+    if(!access.authorized)return NextResponse.json({error:"Permission denied"},{status:403});
     await ensureExtendedSchema();
     const body=await request.json() as Product;
     const sku=String(body.id??"").trim().toUpperCase();
@@ -80,25 +83,36 @@ export async function POST(request:NextRequest){
         String(body.category??""),String(body.position??""),body.yearFrom?Number(body.yearFrom):null,
         body.yearTo?Number(body.yearTo):null,Math.round(price),stock,String(body.tag??"CSA"),
         body.active===false?0:1,JSON.stringify(extended(body))).run();
+    await writeAuditLog({email:access.user.email,action:"product.save",entity:"product",entityId:sku,detail:{active:body.active!==false,stock}});
     return NextResponse.json({ok:true,sku},{status:201});
   }catch(error){console.error("products:save",error);return NextResponse.json({error:"Could not save product"},{status:503})}
 }
 
 export async function DELETE(request:NextRequest){
   try{
-    if(!(await requireCsaAdmin()).authorized)return NextResponse.json({error:"Admin access required"},{status:403});
+    const access=await requirePermission("inventory");
+    if(!access.authorized)return NextResponse.json({error:"Permission denied"},{status:403});
     await ensureExtendedSchema();
-    const sku=String((await request.json()).sku??"").trim().toUpperCase();
+    const payload=await request.json();
+    const sku=String(payload.sku??"").trim().toUpperCase();
+    const purge=payload.mode==="purge";
     if(!sku)return NextResponse.json({error:"SKU is required"},{status:400});
     const fallback=defaults.find(item=>item.id===sku);
-    if(fallback){
+    if(purge){
+      if(fallback)await db().prepare(`INSERT INTO catalog_products (sku,name,vehicle_make,vehicle_model,model_number,category,position,year_from,year_to,price,stock,tag,active,product_data_json,updated_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?, -1,'{}',CURRENT_TIMESTAMP)
+        ON CONFLICT(sku) DO UPDATE SET active=-1,updated_at=CURRENT_TIMESTAMP`)
+        .bind(fallback.id,fallback.name,fallback.vehicleMake??"",fallback.model??"",fallback.modelNumber??"",fallback.category??"",fallback.position??"",fallback.yearFrom??null,fallback.yearTo??null,fallback.price,fallback.stock??0,fallback.tag).run();
+      else await db().prepare("DELETE FROM catalog_products WHERE sku = ?").bind(sku).run();
+    }else if(fallback){
       await db().prepare(`INSERT INTO catalog_products (sku,name,vehicle_make,vehicle_model,model_number,category,position,year_from,year_to,price,stock,tag,active,product_data_json,updated_at)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,'{}',CURRENT_TIMESTAMP)
         ON CONFLICT(sku) DO UPDATE SET active=0,updated_at=CURRENT_TIMESTAMP`)
         .bind(fallback.id,fallback.name,fallback.vehicleMake??"",fallback.model??"",fallback.modelNumber??"",
           fallback.category??"",fallback.position??"",fallback.yearFrom??null,fallback.yearTo??null,
           fallback.price,fallback.stock??0,fallback.tag).run();
-    }else await db().prepare("DELETE FROM catalog_products WHERE sku = ?").bind(sku).run();
+    }else await db().prepare("UPDATE catalog_products SET active=0,updated_at=CURRENT_TIMESTAMP WHERE sku = ?").bind(sku).run();
+    await writeAuditLog({email:access.user.email,action:purge?"product.delete":"product.delist",entity:"product",entityId:sku});
     return NextResponse.json({ok:true});
   }catch(error){console.error("products:delete",error);return NextResponse.json({error:"Could not remove product"},{status:503})}
 }

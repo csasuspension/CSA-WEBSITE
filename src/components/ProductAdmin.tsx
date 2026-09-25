@@ -5,6 +5,7 @@ import {
   Archive, Boxes, CheckCircle2, ChevronLeft, ChevronRight, Edit3, ImagePlus,
   Layers3, Loader2, PackagePlus, Plus, RefreshCw, Search, Settings2,
   PackageCheck, SlidersHorizontal, Trash2,
+  Eye, EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -68,16 +69,27 @@ export function ProductAdmin(){
     }catch(error){setMessage(error instanceof Error?error.message:"Could not save product")}
     finally{setSaving(false)}
   };
-  const remove=async(item:Product)=>{
-    if(!window.confirm(`ซ่อนสินค้า ${item.id} จากเว็บไซต์?`))return;
-    const response=await fetch("/csa-admin/api/products",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({sku:item.id})});
-    if(response.ok){setMessage("ซ่อนสินค้าแล้ว");await load()}else setMessage("ไม่สามารถซ่อนสินค้าได้");
+  const setListed=async(item:Product,active:boolean)=>{
+    setMessage("");
+    if(!active){
+      if(!window.confirm(`ซ่อนสินค้า ${item.id} จากหน้าเว็บไซต์? ข้อมูลสินค้าจะยังอยู่`))return;
+      const response=await fetch("/csa-admin/api/products",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({sku:item.id,mode:"delist"})});
+      if(response.ok){setMessage("ซ่อนสินค้าแล้ว สามารถนำกลับมาแสดงได้ภายหลัง");await load()}else setMessage("ไม่สามารถซ่อนสินค้าได้");
+      return;
+    }
+    const response=await fetch("/csa-admin/api/products",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...item,active:true})});
+    if(response.ok){setMessage("นำสินค้ากลับมาแสดงแล้ว");await load()}else setMessage("ไม่สามารถแสดงสินค้าได้");
+  };
+  const purge=async(item:Product)=>{
+    if(!window.confirm(`ลบสินค้า ${item.id} ถาวร? การดำเนินการนี้ไม่สามารถย้อนกลับได้`))return;
+    const response=await fetch("/csa-admin/api/products",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({sku:item.id,mode:"purge"})});
+    if(response.ok){setMessage("ลบสินค้าออกจากระบบแล้ว");await load()}else setMessage("ไม่สามารถลบสินค้าได้");
   };
 
   return <div>
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div><p className="text-xs font-bold tracking-[.18em] text-[#ffc400]">PRODUCT MANAGEMENT</p><h2 className="mt-1 text-3xl font-black">สินค้า</h2><p className="mt-2 text-sm text-zinc-500">จัดการข้อมูลที่แสดงบนหน้า Customer UI: รายการสินค้า รายละเอียด ข้อมูลจำเพาะ และการรับประกัน</p></div>
-      <Button onClick={()=>setEditing(createProduct())} className="bg-[#ffc400] text-black"><Plus/>เพิ่มสินค้า</Button>
+      <Button onClick={()=>setEditing(createProduct())} className="bg-white text-black hover:bg-zinc-200"><Plus/>เพิ่มสินค้า</Button>
     </div>
     <div className="mt-5 grid gap-3 sm:grid-cols-3">
       <Stat icon={Boxes} value={String(items.length)} label="สินค้าทั้งหมด"/>
@@ -98,10 +110,11 @@ export function ProductAdmin(){
           <td><p className="font-bold">{[item.vehicleMake,item.model].filter(Boolean).join(" ")||"—"}</p><p className="text-xs text-zinc-600">{item.modelNumber||"—"}</p></td>
           <td className="font-bold">฿{Number(item.price).toLocaleString("th-TH")}</td>
           <td><span className={`rounded-full px-2 py-1 text-xs font-bold ${item.active===false?"bg-zinc-800 text-zinc-500":"bg-emerald-500/15 text-emerald-400"}`}>{item.active===false?"HIDDEN":"ACTIVE"}</span></td>
-          <td><div className="flex justify-end gap-2 pr-4"><Button onClick={()=>setEditing(copyProduct(item))} size="sm" variant="outline" className="border-white/15 bg-transparent text-white"><Edit3/>แก้ไข</Button><Button onClick={()=>void remove(item)} size="icon" variant="outline" className="border-red-500/20 bg-transparent text-red-400" aria-label={`Hide ${item.name}`}><Trash2/></Button></div></td>
+          <td><div className="flex justify-end gap-2 pr-4"><Button onClick={()=>setEditing(copyProduct(item))} size="sm" variant="outline" className="border-white/15 bg-transparent text-white"><Edit3/>แก้ไข</Button><Button onClick={()=>void setListed(item,item.active===false)} size="sm" variant="outline" className="border-white/15 bg-transparent text-white">{item.active===false?<><Eye/>แสดง</>:<><EyeOff/>ซ่อน</>}</Button><Button onClick={()=>void purge(item)} size="icon" variant="outline" className="border-red-500/20 bg-transparent text-red-400" aria-label={`Delete ${item.name}`}><Trash2/></Button></div></td>
         </tr>)}</tbody>
       </table>{!visible.length&&<div className="p-10 text-center text-sm text-zinc-500">ไม่พบสินค้าที่ค้นหา</div>}</div>}
     </section>
+    <div className="mt-5 flex justify-center"><Button onClick={()=>setEditing(createProduct())} className="min-h-12 rounded-xl bg-white px-7 font-black text-black"><Plus/>เพิ่มสินค้าใหม่</Button></div>
     {message&&<p className="mt-3 text-sm font-bold text-[#ffc400]">{message}</p>}
     <ProductDialog value={editing} setValue={setEditing} saving={saving} save={()=>void save()}/>
   </div>;
@@ -129,7 +142,7 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-[#0d0d0d] px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <Button onClick={previous} disabled={activeIndex===0} variant="outline" className="border-white/15 bg-transparent text-white"><ChevronLeft/>ย้อนกลับ</Button>
-        <div className="flex gap-2"><Button onClick={()=>setValue(null)} variant="outline" className="border-white/15 bg-transparent text-white">ยกเลิก</Button>{activeIndex<tabs.length-1?<Button onClick={next} className="bg-[#ffc400] text-black">ถัดไป<ChevronRight/></Button>:<Button onClick={save} disabled={saving||!value.id.trim()||!value.name.trim()} className="bg-[#ffc400] text-black">{saving&&<Loader2 className="animate-spin"/>}บันทึกสินค้า</Button>}</div>
+        <div className="flex gap-2"><Button onClick={()=>setValue(null)} variant="outline" className="border-white/15 bg-transparent text-white">ยกเลิก</Button>{activeIndex<tabs.length-1?<Button onClick={next} className="bg-white text-black hover:bg-zinc-200">ถัดไป<ChevronRight/></Button>:<Button onClick={save} disabled={saving||!value.id.trim()||!value.name.trim()} className="bg-white text-black hover:bg-zinc-200">{saving&&<Loader2 className="animate-spin"/>}บันทึกสินค้า</Button>}</div>
       </div>
     </DialogContent>
   </Dialog>;
@@ -167,7 +180,7 @@ function GeneralTab({value,update}:{value:Product;update:<K extends keyof Produc
     </Section>
     <Section title="รูปภาพสินค้า" description="อัปโหลดรูปจากเครื่อง หรือวางลิงก์รูปภาพ แล้วจัดลำดับได้เอง">
       <div className="space-y-3">{images.map((url,index)=><div key={`${url}-${index}`} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-[72px_1fr_auto] sm:items-center">{url?<img src={url} alt="" className="h-16 w-16 rounded-lg bg-white object-contain p-1"/>:<span className="grid h-16 w-16 place-items-center rounded-lg bg-white/5"><ImagePlus className="h-5 w-5 text-[#ffc400]"/></span>}<div><Input value={url} onChange={e=>update("imageUrls",images.map((x,i)=>i===index?e.target.value:x))} placeholder="https://..." className="border-white/15 bg-black/40"/><div className="mt-2 flex gap-2"><Button type="button" disabled={index===0} onClick={()=>{const next=[...images];[next[index-1],next[index]]=[next[index],next[index-1]];update("imageUrls",next)}} size="sm" variant="outline" className="border-white/15 bg-transparent text-white">เลื่อนขึ้น</Button><Button type="button" disabled={index===images.length-1} onClick={()=>{const next=[...images];[next[index+1],next[index]]=[next[index],next[index+1]];update("imageUrls",next)}} size="sm" variant="outline" className="border-white/15 bg-transparent text-white">เลื่อนลง</Button></div></div><Button type="button" onClick={()=>update("imageUrls",images.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div>)}</div>
-      <div className="mt-3 flex flex-wrap gap-2"><label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#ffc400] px-4 text-sm font-black text-black"><ImagePlus className="h-4 w-4"/>{uploading?"กำลังอัปโหลด…":"อัปโหลดรูปสินค้า"}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" disabled={uploading} onChange={e=>{void upload(e.target.files?.[0]);e.currentTarget.value=""}}/></label><Button type="button" onClick={()=>update("imageUrls",[...images,""])} variant="outline" className="border-white/15 bg-transparent text-white"><Plus/>เพิ่มด้วยลิงก์</Button></div>
+      <div className="mt-3 flex flex-wrap gap-2"><label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-black"><ImagePlus className="h-4 w-4"/>{uploading?"กำลังอัปโหลด…":"อัปโหลดรูปสินค้า"}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" disabled={uploading} onChange={e=>{void upload(e.target.files?.[0]);e.currentTarget.value=""}}/></label><Button type="button" onClick={()=>update("imageUrls",[...images,""])} variant="outline" className="border-white/15 bg-transparent text-white"><Plus/>เพิ่มด้วยลิงก์</Button></div>
       {uploadError&&<p className="mt-2 text-sm font-bold text-red-400">{uploadError}</p>}
     </Section>
     <div className="flex items-center justify-between rounded-xl border border-white/10 p-4"><div><p className="font-bold">แสดงสินค้าบนเว็บไซต์</p><p className="text-xs text-zinc-500">ปิดเพื่อซ่อนสินค้าโดยไม่ลบข้อมูล</p></div><Switch checked={value.active!==false} onCheckedChange={checked=>update("active",checked)}/></div>

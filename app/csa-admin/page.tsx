@@ -40,5 +40,5 @@ export default async function AdminPage() {
     );
   }
 
-  return <InternalSystem lang="th" userEmail={access.user.email} />;
+  return <InternalSystem lang="th" userEmail={access.user.email} permissions={access.permissions} />;
 }
