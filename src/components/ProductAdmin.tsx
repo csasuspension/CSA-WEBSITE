@@ -14,11 +14,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { Product, ProductAttribute, ProductOptionGroup, ProductVariant } from "@/src/types/portal";
 
-type TabId="general"|"details"|"attributes"|"warranty";
+type TabId="general"|"details"|"attributes"|"variants"|"shipping"|"warranty";
 const tabs:{id:TabId;label:string;icon:typeof Boxes}[]=[
   {id:"general",label:"ข้อมูลทั่วไป",icon:PackagePlus},
   {id:"details",label:"รายละเอียด",icon:Layers3},
   {id:"attributes",label:"ข้อมูลจำเพาะ",icon:Settings2},
+  {id:"variants",label:"ตัวเลือกและราคา",icon:SlidersHorizontal},
+  {id:"shipping",label:"การจัดส่ง",icon:Boxes},
   {id:"warranty",label:"การรับประกัน",icon:PackageCheck},
 ];
 
@@ -121,6 +123,8 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
         {tab==="general"&&<GeneralTab value={value} update={update}/>} 
         {tab==="details"&&<DetailsTab value={value} update={update}/>} 
         {tab==="attributes"&&<AttributesTab value={value} update={update}/>} 
+        {tab==="variants"&&<VariantsTab value={value} update={update}/>} 
+        {tab==="shipping"&&<ShippingTab value={value} update={update}/>} 
         {tab==="warranty"&&<WarrantyTab value={value} update={update}/>} 
       </div>
       <div className="flex items-center justify-between border-t border-white/10 bg-[#0d0d0d] p-4">
