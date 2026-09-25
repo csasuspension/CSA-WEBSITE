@@ -1,0 +1,1 @@
+import { NextResponse } from "next/server";import { getMember } from "@/src/auth/member";export async function GET(){const member=await getMember();return NextResponse.json({authenticated:Boolean(member),member})}
