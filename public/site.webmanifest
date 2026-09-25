@@ -6,7 +6,6 @@
   "background_color": "#090909",
   "theme_color": "#ffc400",
   "icons": [
-    {"src":"/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"},
-    {"src":"/apple-touch-icon.png","sizes":"180x180","type":"image/png"}
+    {"src":"/CSA_App_Icon_1024.png","sizes":"1024x1024","type":"image/png","purpose":"any maskable"}
   ]
 }
