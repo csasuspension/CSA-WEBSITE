@@ -1,0 +1,1 @@
+import { NextResponse } from "next/server";import { clearMemberSession } from "@/src/auth/member";export async function POST(){await clearMemberSession();return NextResponse.json({ok:true})}
