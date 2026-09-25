@@ -13,8 +13,9 @@ export async function POST(request: NextRequest) {
     const form = await request.formData();
     const file = form.get("file");
     if (!file || typeof file !== "object" || !("arrayBuffer" in file) || !("type" in file) || !("size" in file)) return NextResponse.json({ error: "File required" }, { status: 400 });
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
+    const allowedTypes = new Set(["image/png","image/jpeg","image/webp","image/svg+xml"]);
+    if (!allowedTypes.has(file.type)) {
+      return NextResponse.json({ error: "Unsupported file type. Use PNG, JPG, WEBP or SVG." }, { status: 415 });
     }
     if (file.size > 8 * 1024 * 1024) return NextResponse.json({ error: "File exceeds 8 MB" }, { status: 413 });
     const uploadFile=file as File;
