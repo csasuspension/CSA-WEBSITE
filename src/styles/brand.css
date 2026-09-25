@@ -31,7 +31,8 @@
 html{background:#090909}
 body{margin:0;background:#090909;color:#f5f5f5;font-family:"LINE Seed Sans TH","Noto Sans Thai",Arial,sans-serif}
 button,input,textarea,select{font:inherit}
-button{border-radius:.75rem}
+button{border-radius:.75rem;touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #ffc400;outline-offset:3px}
 [data-slot="button"]{border-radius:.75rem}
 .font-display{font-family:"LINE Seed Sans TH","Noto Sans Thai",Arial,sans-serif;font-weight:900;letter-spacing:-.025em}
 ::selection{background:#ffc400;color:#000}
@@ -43,4 +44,4 @@ button{border-radius:.75rem}
 .header-icon svg{height:23px;width:23px;stroke-width:2.7}
 .social-dot{display:grid;height:44px;width:44px;place-items:center;border-radius:999px;background:#fff;color:#000;font-weight:900}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-@media(max-width:420px){.header-icon{height:36px;width:36px}.header-icon svg{height:21px;width:21px}}
+@media(max-width:420px){.header-icon{height:44px;width:44px}.header-icon svg{height:22px;width:22px}}

@@ -116,10 +116,10 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
   const previous=()=>setTab(tabs[Math.max(0,activeIndex-1)].id);
 
   return <Dialog open onOpenChange={open=>!open&&setValue(null)}>
-    <DialogContent className="max-h-[94vh] overflow-hidden rounded-2xl border-white/10 bg-[#121212] p-0 text-white sm:max-w-5xl">
+    <DialogContent className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden rounded-none border-white/10 bg-[#121212] p-0 text-white sm:h-auto sm:max-h-[94dvh] sm:max-w-5xl sm:rounded-2xl">
       <DialogHeader className="border-b border-white/10 px-5 py-4"><DialogTitle className="flex items-center gap-2 text-2xl"><PackagePlus className="text-[#ffc400]"/>{value.id?"แก้ไขสินค้า":"เพิ่มสินค้าใหม่"}</DialogTitle></DialogHeader>
       <div className="flex overflow-x-auto border-b border-white/10 px-3">{tabs.map(item=>{const Icon=item.icon;return <button key={item.id} onClick={()=>setTab(item.id)} className={`flex shrink-0 items-center gap-2 rounded-none border-b-2 px-4 py-3 text-sm font-bold ${tab===item.id?"border-[#ffc400] text-[#ffc400]":"border-transparent text-zinc-500"}`}><Icon className="h-4 w-4"/>{item.label}</button>})}</div>
-      <div className="max-h-[68vh] overflow-y-auto p-5">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
         {tab==="general"&&<GeneralTab value={value} update={update}/>} 
         {tab==="details"&&<DetailsTab value={value} update={update}/>} 
         {tab==="attributes"&&<AttributesTab value={value} update={update}/>} 
@@ -127,7 +127,7 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
         {tab==="shipping"&&<ShippingTab value={value} update={update}/>} 
         {tab==="warranty"&&<WarrantyTab value={value} update={update}/>} 
       </div>
-      <div className="flex items-center justify-between border-t border-white/10 bg-[#0d0d0d] p-4">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-[#0d0d0d] px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <Button onClick={previous} disabled={activeIndex===0} variant="outline" className="border-white/15 bg-transparent text-white"><ChevronLeft/>ย้อนกลับ</Button>
         <div className="flex gap-2"><Button onClick={()=>setValue(null)} variant="outline" className="border-white/15 bg-transparent text-white">ยกเลิก</Button>{activeIndex<tabs.length-1?<Button onClick={next} className="bg-[#ffc400] text-black">ถัดไป<ChevronRight/></Button>:<Button onClick={save} disabled={saving||!value.id.trim()||!value.name.trim()} className="bg-[#ffc400] text-black">{saving&&<Loader2 className="animate-spin"/>}บันทึกสินค้า</Button>}</div>
       </div>
