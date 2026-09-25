@@ -140,7 +140,7 @@ function GeneralTab({value,update}:{value:Product;update:<K extends keyof Produc
     setUploading(true);setUploadError("");
     try{
       const form=new FormData();form.append("file",file);
-      const response=await fetch("/api/upload",{method:"POST",body:form});
+      const response=await fetch("/csa-admin/api/upload",{method:"POST",body:form});
       const data=await response.json();
       if(!response.ok||!data.url)throw new Error(data.error||"อัปโหลดรูปไม่สำเร็จ");
       update("imageUrls",[...images,String(data.url)]);
