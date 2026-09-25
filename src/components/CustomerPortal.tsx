@@ -155,7 +155,7 @@ export function CustomerPortal() {
         {view==="warranty"&&<Warranty lang={lang} flash={flash}/>}
         {view==="claims"&&<Claims lang={lang} flash={flash}/>}
         {view==="promotions"&&<Promotions lang={lang} content={siteContent}/>} 
-        {(["member","my-products","branches","advice","about","news","clips","faq","careers","contact","profile"] as View[]).includes(view)&&<PublicPage view={view} lang={lang} go={go}/>}
+        {(["member","my-products","branches","advice","about","news","clips","faq","careers","contact","profile"] as View[]).includes(view)&&<PublicPage view={view} lang={lang} go={go} content={siteContent}/>}
     </main>
 
     <MenuDrawer open={menuOpen} setOpen={setMenuOpen} lang={lang} query={query} setQuery={setQuery} labels={labels} go={go}/>
