@@ -1,5 +1,6 @@
 import { requireCsaAdmin } from "@/app/admin-auth";
 import { InternalSystem } from "@/src/components/InternalSystem";
+import { CsaLogo } from "@/src/components/CsaLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function AdminPage() {
     return (
       <main className="grid min-h-screen place-items-center bg-[#090909] px-6 text-white">
         <section className="max-w-md border border-white/10 bg-[#111] p-8 text-center">
-          <img src="/csa-logo.svg" alt="CSA" className="mx-auto h-16 w-auto" />
+          <CsaLogo className="mx-auto h-16" label="CSA" />
           <h1 className="mt-7 text-2xl font-black">Back-office access required</h1>
           <p className="mt-3 leading-7 text-zinc-400">{message}</p>
           <a

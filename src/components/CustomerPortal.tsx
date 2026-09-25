@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShockAbsorberIcon } from "@/src/components/icons/ShockAbsorberIcon";
+import { CsaLogo } from "@/src/components/CsaLogo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,7 +132,7 @@ export function CustomerPortal() {
     <header className="sticky top-0 z-40 bg-[#ffc400] text-black shadow-md">
       <div className="mx-auto flex h-[66px] max-w-[1600px] items-center px-4 sm:h-[76px] sm:px-7">
         <button className="flex items-center" onClick={() => go("shop")} aria-label="CSA home">
-          <img src="/csa-logo.svg" alt="CSA High Performance Suspension" className="h-9 w-auto sm:h-11"/>
+          <CsaLogo className="h-9 sm:h-11" />
         </button>
         <nav className="mx-auto hidden items-center gap-7 text-sm font-black lg:flex">
           {(["shop","promotions","branches","advice","about"] as View[]).map(id=><button key={id} onClick={()=>go(id)} className={view===id?"underline decoration-2 underline-offset-8":"opacity-70 hover:opacity-100"}>{labels[id]}</button>)}
