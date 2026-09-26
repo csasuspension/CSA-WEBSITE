@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/app/admin-auth";
 import { writeAuditLog } from "@/app/admin-audit";
+import { notifyOrder } from "@/src/notifications/line";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,7 @@ export async function POST(request:NextRequest){
       VALUES (?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
       ON CONFLICT(id) DO UPDATE SET status=excluded.status,data_json=excluded.data_json,updated_at=CURRENT_TIMESTAMP`)
       .bind(id,kind,status,JSON.stringify(data)).run();
+    if(kind==="order"&&String((data as any).memberId||""))await notifyOrder(String((data as any).memberId),id,status,{carrier:(data as any).carrier,trackingNo:(data as any).trackingNo});
     await writeAuditLog({email:access.user.email,action:body.id?"record.update":"record.create",entity:kind,entityId:id,detail:{status}});
     return NextResponse.json({ok:true,id,kind,status,data},{status:201});
   }catch(error){console.error("sales:save",error);return NextResponse.json({error:"Could not save sales record"},{status:503})}
