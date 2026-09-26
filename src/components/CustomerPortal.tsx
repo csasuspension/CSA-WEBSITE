@@ -132,9 +132,9 @@ export function CustomerPortal() {
 
   return <div className="min-h-screen overflow-x-clip bg-[#090909] text-white">
     <header className="sticky top-0 z-40 bg-[#ffc400] text-black shadow-md">
-      <div className="mx-auto flex h-[66px] max-w-[1600px] items-center px-4 sm:h-[76px] sm:px-7">
+      <div className="mx-auto flex h-[56px] max-w-[1600px] items-center px-4 sm:h-[64px] sm:px-7">
         <button className="flex items-center" onClick={() => go("shop")} aria-label="CSA home">
-          <CsaLogo className="h-9 sm:h-11" />
+          <CsaLogo className="h-8 sm:h-[38px]" />
         </button>
         <nav className="mx-auto hidden items-center gap-7 text-sm font-black lg:flex">
           {(["shop","promotions","branches","advice","about"] as View[]).map(id=><button key={id} onClick={()=>go(id)} className={view===id?"underline decoration-2 underline-offset-8":"opacity-70 hover:opacity-100"}>{labels[id]}</button>)}
