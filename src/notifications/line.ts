@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 
 type LineCard={memberId?:string;lineUserId?:string;title:string;subtitle?:string;reference:string;status:string;actionLabel?:string;actionUrl?:string;altText?:string};
 function db(){if(!env.DB)throw new Error("Database unavailable");return env.DB}
-async function lineUser(card:LineCard){if(card.lineUserId)return card.lineUserId;if(!card.memberId)return "";const r=await db().prepare("SELECT line_user_id FROM members WHERE id=?").bind(card.memberId).first<{line_user_id:string}>();return r?.line_user_id??""}
+async function lineUser(card:LineCard){const testUser=String(env.LINE_TEST_USER_ID??"").trim();const useTest=String(env.LINE_TEST_MODE??"")=="1";if(useTest&&testUser)return testUser;if(card.lineUserId)return card.lineUserId;if(!card.memberId)return "";const r=await db().prepare("SELECT line_user_id FROM members WHERE id=?").bind(card.memberId).first<{line_user_id:string}>();return r?.line_user_id??""}
 function site(){return String(env.CSA_PUBLIC_URL??"https://www.csasuspension.com").replace(/\/$/,"")}
 export async function pushLineCard(card:LineCard){
  const token=String(env.LINE_CHANNEL_ACCESS_TOKEN??"").trim(),to=await lineUser(card);if(!token||!to)return {delivery:"skipped",reason:!token?"LINE token missing":"member LINE user missing"};
