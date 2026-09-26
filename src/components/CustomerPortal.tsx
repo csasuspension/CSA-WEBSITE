@@ -192,9 +192,9 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
         <Button onClick={()=>document.getElementById("finder")?.scrollIntoView({behavior:"smooth"})} className="mt-5 h-12 rounded-xl bg-[#ffc400] px-7 font-black text-black hover:bg-white">{content.hero.button[lang]}<ChevronRight/></Button></div>
       </div>
     </section>
-    <section className="grid grid-cols-3 bg-black text-center">
+    <section className="bg-black px-3 sm:px-10"><div className="mx-auto grid max-w-6xl grid-cols-3 overflow-hidden rounded-b-xl text-center">
       {[[ShockAbsorberIcon,lang==="th"?"โช้คอัพ":"SHOCKS",()=>document.getElementById("finder")?.scrollIntoView({behavior:"smooth"})],[ShieldCheck,lang==="th"?"รับประกัน":"WARRANTY",()=>go("warranty")],[BadgeCheck,lang==="th"?"ของแท้ CSA":"GENUINE CSA",()=>go("about")]].map(([I,label,action],i)=>{const Icon=I as typeof ShockAbsorberIcon;return <button key={label as string} onClick={action as ()=>void} className={`flex min-h-20 flex-col items-center justify-center gap-1.5 border-r border-white/10 px-2 text-xs font-black sm:min-h-24 sm:text-sm ${i===0?"border-t-4 border-t-[#ffc400] bg-white text-black":"text-white"}`}><Icon className="h-6 w-6 sm:h-7 sm:w-7"/>{label as string}</button>})}
-    </section>
+      </div></section>
     <section id="finder" className="relative scroll-mt-20 overflow-hidden bg-[#151515] px-3 py-10 text-black sm:scroll-mt-24 sm:px-10 sm:py-16">
       <div aria-hidden="true" className="absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-[#ffc400]/10 blur-3xl"/>
       <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[28px] border border-white/10 bg-[#090909] shadow-[0_28px_80px_rgba(0,0,0,.45)]">
