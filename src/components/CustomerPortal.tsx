@@ -186,7 +186,7 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
       <img src={content.hero.image||"/csa-ci.jpg"} alt="CSA high performance suspension" className="absolute inset-0 h-full w-full object-cover object-[57%_5%]"/>
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent"/>
       <div className="relative flex min-h-[340px] items-center px-4 py-10 sm:min-h-[470px] sm:px-12">
-        <div className="max-w-xl"><span className="bg-[#ffc400] px-4 py-1 text-[11px] font-black tracking-[.2em] text-black">{content.hero.badge[lang]}</span>
+        <div className="max-w-xl"><span className="bg-[#ffc400] px-4 py-1 text-[11px] font-semibold tracking-[.2em] text-black">{content.hero.badge[lang]}</span>
         <h1 className="mt-5 font-display text-4xl uppercase leading-[.95] sm:text-6xl">{content.hero.title[lang]}<br/><span className="text-[#ffc400]">{content.hero.highlight[lang]}</span></h1>
         <p className="mt-4 max-w-md text-sm leading-6 text-zinc-200">{content.hero.description[lang]}</p>
         <Button onClick={()=>document.getElementById("finder")?.scrollIntoView({behavior:"smooth"})} className="mt-5 h-12 rounded-xl bg-[#ffc400] px-7 font-black text-black hover:bg-white">{content.hero.button[lang]}<ChevronRight/></Button></div>
@@ -204,12 +204,12 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
             <div className="relative flex h-full flex-col">
               <div className="flex items-start justify-between gap-4 lg:block">
                 <span className="grid h-14 w-14 place-items-center rounded-2xl bg-black text-white shadow-[0_6px_0_rgba(255,255,255,.45)]"><ShockAbsorberIcon className="h-8 w-8"/></span>
-                <button onClick={clearFinder} className="rounded-full border border-black/25 px-4 py-2 text-xs font-black transition hover:bg-black hover:text-white lg:absolute lg:bottom-0 lg:left-0">{lang==="th"?"ล้างทั้งหมด":"Clear all"}</button>
+                <button onClick={clearFinder} className="rounded-full border border-black/25 px-4 py-2 text-xs font-semibold transition hover:bg-black hover:text-white lg:absolute lg:bottom-0 lg:left-0">{lang==="th"?"ล้างทั้งหมด":"Clear all"}</button>
               </div>
               <div className="relative mt-6 lg:mt-10">
-                <p className="text-[11px] font-black uppercase tracking-[.22em] opacity-60">CSA FITMENT FINDER</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[.22em] opacity-60">CSA FITMENT FINDER</p>
                 <h2 className="mt-2 font-display text-4xl leading-none sm:text-5xl">{lang==="th"?"โช้คอัพ":"Shock absorbers"}</h2>
-                <p className="mt-4 max-w-[240px] text-sm font-bold leading-6 opacity-70">{lang==="th"?"เลือกข้อมูลรถตามลำดับ เพื่อค้นหาโช้คอัพที่ตรงรุ่น":"Choose your vehicle step by step to find the exact fit."}</p>
+                <p className="mt-4 max-w-[240px] text-sm font-medium leading-6 opacity-70">{lang==="th"?"เลือกข้อมูลรถตามลำดับ เพื่อค้นหาโช้คอัพที่ตรงรุ่น":"Choose your vehicle step by step to find the exact fit."}</p>
               </div>
               <div className="mt-6 flex gap-2 lg:mt-auto lg:mb-14">
                 {[Boolean(make),Boolean(chosen),Boolean(year)].map((done,index)=><span key={index} className={`h-1.5 flex-1 rounded-full transition-colors ${done?"bg-black":"bg-black/20"}`}/>) }
@@ -218,7 +218,7 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
           </div>
           <div className="p-5 sm:p-8 lg:p-10">
             <div className="mb-5 flex items-center justify-between text-white">
-              <p className="text-xs font-black uppercase tracking-[.18em] text-zinc-500">{lang==="th"?"ข้อมูลรถของคุณ":"Your vehicle"}</p>
+              <p className="text-xs font-semibold uppercase tracking-[.18em] text-zinc-500">{lang==="th"?"ข้อมูลรถของคุณ":"Your vehicle"}</p>
               <p className="text-xs font-bold text-[#ffc400]">{[make,chosen,year].filter(Boolean).length}/3</p>
             </div>
             <div className="space-y-4">
@@ -288,9 +288,9 @@ function MenuDrawer({open,setOpen,lang,query,setQuery,labels,go,content,loggedIn
   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-[calc(2rem+env(safe-area-inset-bottom))]">
    <label className="my-5 flex items-center rounded-full border border-zinc-300 p-2 pl-5"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={lang==="th"?"ค้นหาสินค้า / รุ่นรถ":"Search products / vehicle"} className="h-10 min-w-0 flex-1 outline-none"/><button onClick={()=>{go("shop");window.setTimeout(()=>document.getElementById("product-catalog")?.scrollIntoView({behavior:"smooth"}),120)}} className="grid h-11 w-11 place-items-center rounded-full bg-black text-white"><Search/></button></label>
    <button onClick={()=>go("shop")} className="flex w-full items-center justify-between rounded-xl bg-[#ffc400] px-4 py-4 text-left font-black"><span className="flex items-center gap-3"><ShockAbsorberIcon className="h-6 w-6"/>{lang==="th"?"เลือกโช้คอัพให้ตรงรุ่น":"Find shocks for my van"}</span><ChevronRight className="h-5 w-5"/></button>
-   <section className="mt-6"><p className="mb-2 text-xs font-black uppercase tracking-[.15em] text-zinc-400">{lang==="th"?"บัญชีของฉัน":"MY CSA"}</p>{loggedIn?<button onClick={()=>go("profile")} className="mb-2 flex w-full items-center gap-3 rounded-xl bg-zinc-100 p-4 text-left"><UserRound className="h-5 w-5"/><div><p className="font-black">{memberName||"CSA Member"}</p><p className="text-xs text-emerald-600">LINE CONNECTED</p></div></button>:<button onClick={()=>{setOpen(false);login()}} className="mb-2 flex w-full items-center justify-between rounded-xl bg-zinc-100 p-4 text-left font-black"><span className="flex items-center gap-3"><UserRound className="h-5 w-5"/>{lang==="th"?"เข้าสู่ระบบด้วย LINE":"Sign in with LINE"}</span><ChevronRight className="h-5 w-5 text-zinc-400"/></button>}{account.map(x=>item(x.id,x.icon))}</section>
-   <section className="mt-6"><p className="mb-2 text-xs font-black uppercase tracking-[.15em] text-zinc-400">{lang==="th"?"บริการและช่วยเหลือ":"SUPPORT"}</p>{support.map(x=>item(x.id,x.icon))}</section>
-   <section className="mt-6"><p className="mb-2 text-xs font-black uppercase tracking-[.15em] text-zinc-400">{lang==="th"?"รู้จัก CSA":"DISCOVER CSA"}</p>{discover.map(x=>item(x.id,x.icon))}</section>
+   <section className="mt-6"><p className="mb-2 text-xs font-semibold uppercase tracking-[.15em] text-zinc-400">{lang==="th"?"บัญชีของฉัน":"MY CSA"}</p>{loggedIn?<button onClick={()=>go("profile")} className="mb-2 flex w-full items-center gap-3 rounded-xl bg-zinc-100 p-4 text-left"><UserRound className="h-5 w-5"/><div><p className="font-black">{memberName||"CSA Member"}</p><p className="text-xs text-emerald-600">LINE CONNECTED</p></div></button>:<button onClick={()=>{setOpen(false);login()}} className="mb-2 flex w-full items-center justify-between rounded-xl bg-zinc-100 p-4 text-left font-black"><span className="flex items-center gap-3"><UserRound className="h-5 w-5"/>{lang==="th"?"เข้าสู่ระบบด้วย LINE":"Sign in with LINE"}</span><ChevronRight className="h-5 w-5 text-zinc-400"/></button>}{account.map(x=>item(x.id,x.icon))}</section>
+   <section className="mt-6"><p className="mb-2 text-xs font-semibold uppercase tracking-[.15em] text-zinc-400">{lang==="th"?"บริการและช่วยเหลือ":"SUPPORT"}</p>{support.map(x=>item(x.id,x.icon))}</section>
+   <section className="mt-6"><p className="mb-2 text-xs font-semibold uppercase tracking-[.15em] text-zinc-400">{lang==="th"?"รู้จัก CSA":"DISCOVER CSA"}</p>{discover.map(x=>item(x.id,x.icon))}</section>
    <div className="mt-7 border-t border-zinc-300 pt-6">{phone&&<a href={`tel:${phone.replace(/[^+\d]/g,"")}`} className="flex items-center gap-3 text-base font-black"><Phone/>{lang==="th"?"โทร":"Call"} {phone}</a>}{lineUrl&&<a href={lineUrl} target="_blank" rel="noreferrer" className="mt-5 flex items-center gap-3 text-base font-black"><MessageCircle className="h-5 w-5"/>{lang==="th"?"ติดต่อ CSA ทาง LINE":"Contact CSA on LINE"}</a>}{!phone&&!lineUrl&&<button onClick={()=>go("contact")} className="flex items-center gap-3 text-base font-black"><Mail/>{lang==="th"?"ข้อมูลติดต่อ CSA":"CSA contact information"}</button>}</div>
   </div>
  </SheetContent></Sheet>;
