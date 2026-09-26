@@ -99,6 +99,23 @@ export async function POST(request:NextRequest){
     await db().prepare(`INSERT INTO operations_records (id,kind,status,data_json,created_at,updated_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
       ON CONFLICT(id) DO UPDATE SET status=excluded.status,data_json=excluded.data_json,updated_at=CURRENT_TIMESTAMP`)
       .bind(id,kind,status,JSON.stringify(data)).run();
+    const orderId=String((data as Record<string,unknown>).orderId??"").trim().toUpperCase();
+    if(orderId&&(kind==="payment"||kind==="shipment")){
+      const order=await db().prepare("SELECT data_json,status FROM sales_records WHERE id=? AND kind='order'").bind(orderId).first<{data_json:string;status:string}>();
+      if(order){let orderData:Record<string,unknown>={};try{orderData=JSON.parse(order.data_json)}catch{}
+        let orderStatus=order.status;
+        if(kind==="payment"){
+          orderData={...orderData,paymentStatus:status==="verified"?"paid":status==="rejected"?"rejected":"pending",paymentMethod:String((data as any).method??""),paymentReference:id,payment:status==="verified"?"ยืนยันการชำระแล้ว":status==="rejected"?"การชำระไม่ผ่าน":"รอตรวจสอบการชำระ"};
+          if(status==="verified"&&orderStatus==="awaiting_payment")orderStatus="paid";
+        }else{
+          orderData={...orderData,shippingStatus:status,carrier:String((data as any).carrier??""),trackingNo:String((data as any).trackingNo??""),shippingReference:id,shipping:[(data as any).carrier,(data as any).trackingNo].filter(Boolean).join(" · ")||status};
+          if(status==="packing"&&["paid","confirmed"].includes(orderStatus))orderStatus="packing";
+          if(status==="shipped")orderStatus="shipped";
+          if(status==="delivered")orderStatus="completed";
+        }
+        await db().prepare("UPDATE sales_records SET status=?,data_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(orderStatus,JSON.stringify(orderData),orderId).run();
+      }
+    }
     await writeAuditLog({email:access.user.email,action:body.id?"record.update":"record.create",entity:kind,entityId:id,detail:{status}});
     return NextResponse.json({ok:true,id,kind,status,data},{status:201});
   }catch(error){console.error("operations:save",error);return NextResponse.json({error:"Could not save operations record"},{status:503})}
