@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 import { requireCsaAdmin, requirePermission, type AdminPermission } from "@/app/admin-auth";
 import { writeAuditLog } from "@/app/admin-audit";
+import { notifyAfterSales, notifyOrder } from "@/src/notifications/line";
 
 export const dynamic = "force-dynamic";
 
@@ -114,7 +115,13 @@ export async function POST(request:NextRequest){
           if(status==="delivered")orderStatus="completed";
         }
         await db().prepare("UPDATE sales_records SET status=?,data_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(orderStatus,JSON.stringify(orderData),orderId).run();
+        const memberId=String((orderData as any).memberId||"");if(memberId)await notifyOrder(memberId,orderId,orderStatus,{carrier:(orderData as any).carrier,trackingNo:(orderData as any).trackingNo});
       }
+    }
+    if(kind==="warranty"||kind==="claim"){
+      const memberId=String((data as any).memberId||"");const serial=String((data as any).serial||"");if(memberId)await notifyAfterSales(memberId,kind,id,status,serial);
+      if(kind==="claim"&&memberId)await db().prepare("UPDATE member_claims SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND member_id=?").bind(status,id,memberId).run();
+      if(kind==="warranty"&&memberId)await db().prepare("UPDATE member_products SET status=? WHERE warranty_id=? AND member_id=?").bind(status,id,memberId).run();
     }
     await writeAuditLog({email:access.user.email,action:body.id?"record.update":"record.create",entity:kind,entityId:id,detail:{status}});
     return NextResponse.json({ok:true,id,kind,status,data},{status:201});
