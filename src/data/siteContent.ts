@@ -2,7 +2,7 @@ export type LocalText={th:string;en:string};
 export type PublishStatus="draft"|"published";
 export type EditorialItem={id:string;type:"advice"|"news"|"clip";title:LocalText;excerpt:LocalText;body:LocalText;image:string;url:string;category:string;publishedAt:string;status:PublishStatus;sortOrder:number};
 export type FaqItem={id:string;question:LocalText;answer:LocalText;status:PublishStatus;sortOrder:number};
-export type DealerItem={id:string;name:LocalText;place:LocalText;phone:string;status:PublishStatus;sortOrder:number};
+export type DealerItem={id:string;name:LocalText;place:LocalText;phone:string;mapUrl:string;latitude:number|null;longitude:number|null;status:PublishStatus;sortOrder:number};
 export type CareerItem={id:string;title:LocalText;location:LocalText;description:LocalText;email:string;status:PublishStatus;sortOrder:number};
 export type SiteContent={
   hero:{image:string;badge:LocalText;title:LocalText;highlight:LocalText;description:LocalText;button:LocalText};
@@ -38,7 +38,7 @@ export function normalizeSiteContent(input:Partial<SiteContent>|null|undefined):
     about:{headline:{...defaultSiteContent.about.headline,...value.about?.headline},description:{...defaultSiteContent.about.description,...value.about?.description}},
     editorial:Array.isArray(value.editorial)?value.editorial:[],
     faqs:Array.isArray(value.faqs)?value.faqs:[],
-    dealers:Array.isArray(value.dealers)?value.dealers:[],
+    dealers:Array.isArray(value.dealers)?value.dealers.map((x:any)=>({...x,mapUrl:String(x.mapUrl??""),latitude:Number.isFinite(Number(x.latitude))?Number(x.latitude):null,longitude:Number.isFinite(Number(x.longitude))?Number(x.longitude):null})):[],
     careers:Array.isArray(value.careers)?value.careers:[]
   };
 }
