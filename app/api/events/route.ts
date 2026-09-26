@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createPortalEvent, listPortalEvents } from "@/db/portal";
 import { requireCsaAdmin } from "@/app/admin-auth";
 import { getMember } from "@/src/auth/member";
+import { notifyAfterSales } from "@/src/notifications/line";
 
 export const dynamic="force-dynamic";
 function database(){if(!env.DB)throw new Error("Database unavailable");return env.DB}
@@ -26,7 +27,9 @@ export async function POST(request:NextRequest){
   if(eventType==="warranty"||eventType==="claim"){await ensureOperations();await ensureMemberRecords();
    if(eventType==="warranty"){const serial=String(payload.serial).trim().toUpperCase();const existing=await database().prepare("SELECT warranty_id FROM member_products WHERE member_id=? AND serial=?").bind(member!.id,serial).first();if(existing)return NextResponse.json({error:"This serial is already registered to your account"},{status:409});await database().prepare("INSERT INTO member_products (id,member_id,serial,warranty_id,status,purchase_date,dealer,receipt_url) VALUES (?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),member!.id,serial,ref,status,String(payload.purchaseDate??""),String(payload.dealer??""),String(payload.receiptUrl??"")).run()}
    if(eventType==="claim"){const serial=String(payload.serial).trim().toUpperCase();const owned=await database().prepare("SELECT id FROM member_products WHERE member_id=? AND serial=?").bind(member!.id,serial).first();if(!owned)return NextResponse.json({error:"Register this product to your account before submitting a claim"},{status:409});await database().prepare("INSERT INTO member_claims (id,member_id,serial,status,issue,evidence_url) VALUES (?,?,?,?,?,?)").bind(ref,member!.id,serial,status,String(payload.issue??""),String(payload.evidenceUrl??"")).run()}
-await database().prepare("INSERT INTO operations_records (id,kind,status,data_json) VALUES (?,?,?,?) ON CONFLICT(id) DO NOTHING").bind(ref,eventType,status,JSON.stringify({...linkedPayload,source:"customer_portal"})).run()}
+await database().prepare("INSERT INTO operations_records (id,kind,status,data_json) VALUES (?,?,?,?) ON CONFLICT(id) DO NOTHING").bind(ref,eventType,status,JSON.stringify({...linkedPayload,source:"customer_portal"})).run();
+   await notifyAfterSales(member!.id,eventType,ref,status,String(payload.serial??"").trim().toUpperCase());
+  }
   return NextResponse.json({ok:true,event,reference:ref,status},{status:201});
  }catch(error){console.error("events:create",error);return NextResponse.json({error:"Could not save this record"},{status:503})}
 }
