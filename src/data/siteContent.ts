@@ -19,7 +19,7 @@ export type SiteContent={
 export const defaultSiteContent:SiteContent={
   hero:{image:"/csa-ci.jpg",badge:{th:"CSA VAN SERIES",en:"CSA VAN SERIES"},title:{th:"นุ่ม แน่น หนึบ",en:"Smooth. Stable."},highlight:{th:"จบในเซ็ตเดียว",en:"Built for your van."},description:{th:"ช่วงล่างสมรรถนะสูงสำหรับรถตู้ พร้อมค้นหารุ่นที่ตรงกับรถของคุณและรับประกันออนไลน์",en:"High-performance van suspension with precise fitment and online warranty."},button:{th:"ค้นหาสินค้าที่ตรงรุ่น",en:"Find compatible parts"}},
   promotion:{active:true,image:"",title:{th:"สิทธิพิเศษสำหรับสมาชิก CSA",en:"CSA member privilege"},description:{th:"ติดตามข่าวสารและโปรโมชั่นล่าสุดจาก CSA",en:"Discover the latest CSA news and promotions."},button:{th:"ดูรายละเอียด",en:"View details"},url:"",startsAt:"",endsAt:""},
-  contact:{phone:"02-000-0000",email:"service@csa.co.th",facebook:"https://facebook.com",instagram:"https://instagram.com",line:"https://line.me",address:{th:"เชียงใหม่ ประเทศไทย",en:"Chiang Mai, Thailand"}},
+  contact:{phone:"",email:"",facebook:"",instagram:"",line:"",address:{th:"",en:""}},
   dealerButton:{th:"ค้นหาตัวแทนใกล้ฉัน",en:"Find a dealer near me"},
   about:{headline:{th:"ช่วงล่างที่ออกแบบเพื่อรถตู้ และการใช้งานจริงของคนไทย",en:"Suspension engineered for vans and real Thai road conditions."},description:{th:"CSA มุ่งพัฒนาผลิตภัณฑ์ช่วงล่างที่ให้ทั้งความนุ่ม ความมั่นคง และความมั่นใจ พร้อมระบบ Serial Number การรับประกัน และบริการหลังการขายที่ตรวจสอบได้",en:"CSA develops van suspension for comfort, stability and confidence, backed by traceable serial numbers, warranty and after-sales support."}},
   editorial:[],
