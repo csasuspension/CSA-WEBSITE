@@ -140,13 +140,13 @@ export function CustomerPortal() {
           {(["shop","promotions","branches","advice","about"] as View[]).map(id=><button key={id} onClick={()=>go(id)} className={view===id?"underline decoration-2 underline-offset-8":"opacity-70 hover:opacity-100"}>{labels[id]}</button>)}
         </nav>
         <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
-          <button className="header-icon !h-9 !w-9 [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:stroke-[1.8]" onClick={()=>loggedIn?go("profile"):setLoginOpen(true)} aria-label={t.login}><UserRound/></button>
-          <button className="header-icon relative !h-9 !w-9 [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:stroke-[1.8]" onClick={()=>setCartOpen(true)} aria-label={t.cart}><ShoppingBag/>{count>0&&<span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-black px-1 text-[10px] text-white">{count}</span>}</button>
-          {loggedIn&&<button onClick={async()=>{await fetch("/api/auth/logout",{method:"POST"});setLoggedIn(false);setMemberName("");flash(lang==="th"?"ออกจากระบบแล้ว":"Signed out")}} className="header-icon hidden !h-9 !w-9 sm:grid [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:stroke-[1.8]" aria-label={lang==="th"?"ออกจากระบบ":"Sign out"}><LogOut/></button>}
+          <button className="header-icon !h-9 !w-9 [&_svg]:h-[15px] [&_svg]:w-[15px] [&_svg]:stroke-[1.8]" onClick={()=>loggedIn?go("profile"):setLoginOpen(true)} aria-label={t.login}><UserRound/></button>
+          <button className="header-icon relative !h-9 !w-9 [&_svg]:h-[15px] [&_svg]:w-[15px] [&_svg]:stroke-[1.8]" onClick={()=>setCartOpen(true)} aria-label={t.cart}><ShoppingBag/>{count>0&&<span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-black px-1 text-[10px] text-white">{count}</span>}</button>
+          {loggedIn&&<button onClick={async()=>{await fetch("/api/auth/logout",{method:"POST"});setLoggedIn(false);setMemberName("");flash(lang==="th"?"ออกจากระบบแล้ว":"Signed out")}} className="header-icon hidden !h-9 !w-9 sm:grid [&_svg]:h-[15px] [&_svg]:w-[15px] [&_svg]:stroke-[1.8]" aria-label={lang==="th"?"ออกจากระบบ":"Sign out"}><LogOut/></button>}
           <div className="ml-0.5 flex rounded-full bg-black p-[3px] text-[10px] font-semibold tracking-[-0.01em] text-white">
             {(["th","en"] as Lang[]).map(x=><button key={x} onClick={()=>changeLang(x)} className={`grid h-8 w-8 place-items-center rounded-full ${lang===x?"bg-white text-black":""}`}>{x.toUpperCase()}</button>)}
           </div>
-          <button className="header-icon ml-0.5 !h-9 !w-9 [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:stroke-[1.8]" onClick={()=>setMenuOpen(true)} aria-label={lang==="th"?"เปิดเมนู":"Open menu"}><Menu/></button>
+          <button className="header-icon ml-0.5 !h-9 !w-9 [&_svg]:h-[15px] [&_svg]:w-[15px] [&_svg]:stroke-[1.8]" onClick={()=>setMenuOpen(true)} aria-label={lang==="th"?"เปิดเมนู":"Open menu"}><Menu/></button>
         </div>
       </div>
     </header>
