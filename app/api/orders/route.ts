@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 import { getMember } from "@/src/auth/member";
+import { notifyOrder } from "@/src/notifications/line";
 
 export const dynamic="force-dynamic";
 type Item={id:string;qty:number}; type ProductRow={sku:string;name:string;price:number;stock:number;active:number};
@@ -19,5 +20,6 @@ export async function POST(request:NextRequest){try{
  const total=lines.reduce((s,x)=>s+x.lineTotal,0),orderId=id(),member=await getMember();await ensure();
  const data={customer,phone,address,province,postcode,note,amount:total,items:lines,memberId:member?.id??"",paymentMethod:"pending",paymentStatus:"unpaid",paymentReference:"",payment:"รอเลือกวิธีชำระ",shippingStatus:"pending",shipping:"รอยืนยัน",trackingNo:"",carrier:"",source:"website"};
  await db().prepare("INSERT INTO sales_records (id,kind,status,data_json) VALUES (?,'order','awaiting_payment',?)").bind(orderId,JSON.stringify(data)).run();
- return NextResponse.json({ok:true,orderId,status:"awaiting_payment",amount:total,paymentStatus:"unpaid"},{status:201});
+ const line=member?await notifyOrder(member.id,orderId,"awaiting_payment"):({delivery:"skipped"} as const);
+ return NextResponse.json({ok:true,orderId,status:"awaiting_payment",amount:total,paymentStatus:"unpaid",line},{status:201});
 }catch(error){console.error("orders:create",error);return NextResponse.json({error:"Could not create order"},{status:503})}}
