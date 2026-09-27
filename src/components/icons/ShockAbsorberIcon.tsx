@@ -12,3 +12,4 @@ export function ShockAbsorberIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+

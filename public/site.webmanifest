@@ -6,6 +6,7 @@
   "background_color": "#090909",
   "theme_color": "#ffc400",
   "icons": [
-    {"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"}
+    {"src":"/csa-favicon-v10.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"},
+    {"src":"/csa-apple-touch-v10.png","sizes":"180x180","type":"image/png"}
   ]
 }

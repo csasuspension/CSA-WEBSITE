@@ -7,3 +7,4 @@ declare namespace Cloudflare {
     ENVIRONMENT?: string;
   }
 }
+

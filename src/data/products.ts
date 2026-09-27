@@ -9,3 +9,4 @@ export const products: Product[] = [
   { id: "CSA-H3-A01", name: "Remote Reservoir Kit", vehicleMake:"TOYOTA", model: "HIACE 300", modelNumber:"GDH300", category:"Accessory", position:"Full Set", yearFrom:2019, yearTo:2026, price: 0, stock:0, tag: "UPGRADE", active:true },
   { id: "CSA-MJ-A02", name: "Adjuster Service Kit", vehicleMake:"TOYOTA", model: "MAJESTY", modelNumber:"GDH303", category:"Service Part", position:"Full Set", yearFrom:2019, yearTo:2026, price: 0, stock:0, tag: "SERVICE", active:true }
 ];
+

@@ -27,3 +27,4 @@ export const catalogProducts = sqliteTable("catalog_products", {
   productDataJson: text("product_data_json").notNull().default("{}"),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+

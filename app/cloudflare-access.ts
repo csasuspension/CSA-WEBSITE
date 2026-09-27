@@ -20,3 +20,4 @@ export async function getCloudflareAccessUser(): Promise<CloudflareAccessUser | 
   return { email, displayName: email };
 }
 
+
