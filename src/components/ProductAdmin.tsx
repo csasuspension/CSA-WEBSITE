@@ -88,7 +88,7 @@ export function ProductAdmin(){
 
   return <div>
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><p className="text-xs font-bold tracking-[.18em] text-[#ffc400]">PRODUCT MANAGEMENT</p><h2 className="mt-1 text-3xl font-black">สินค้า</h2><p className="mt-2 text-sm text-zinc-500">จัดการข้อมูลที่แสดงบนหน้า Customer UI: รายการสินค้า รายละเอียด ข้อมูลจำเพาะ และการรับประกัน</p></div>
+      <div><p className="text-xs font-bold tracking-[.18em] text-[#ffc400]">PRODUCT MANAGEMENT</p><h2 className="mt-1 text-3xl font-black">จัดการสินค้า</h2><p className="mt-2 text-sm text-zinc-500">จัดการสินค้า รายละเอียด ตัวเลือก ราคา สต็อก และการแสดงผล</p></div>
       <Button onClick={()=>setEditing(createProduct())} className="bg-[#ffc400] font-black text-black hover:bg-[#ffd43b]"><Plus/>เพิ่มสินค้า</Button>
     </div>
     <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -98,7 +98,7 @@ export function ProductAdmin(){
     </div>
     <section className="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-[#111]">
       <div className="flex flex-wrap items-center gap-3 border-b border-white/10 p-4">
-        <label className="flex h-11 min-w-0 flex-1 items-center rounded-xl border border-white/15 bg-black px-3"><Search className="mr-2 h-4 w-4 text-zinc-500"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="ค้นหา SKU, ชื่อสินค้า, แบรนด์, รุ่นรถ หรือหมวดหมู่" className="w-full bg-transparent text-sm outline-none"/></label>
+        <label className="flex h-11 min-w-0 flex-1 items-center rounded-xl border border-white/15 bg-black px-3"><Search className="mr-2 h-4 w-4 text-zinc-500"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="ค้นหาชื่อ รหัส หรือ SKU" className="w-full bg-transparent text-sm outline-none"/></label>
         <Button onClick={()=>void load()} variant="outline" className="border-white/15 bg-transparent text-white"><RefreshCw className={loading?"animate-spin":""}/>รีเฟรช</Button>
       </div>
       {loading?<div className="grid h-44 place-items-center"><Loader2 className="animate-spin text-[#ffc400]"/></div>:
@@ -130,7 +130,7 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
 
   return <Dialog open onOpenChange={open=>!open&&setValue(null)}>
     <DialogContent className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden rounded-none border-white/10 bg-[#121212] p-0 text-white sm:h-auto sm:max-h-[94dvh] sm:max-w-5xl sm:rounded-2xl">
-      <DialogHeader className="border-b border-white/10 px-5 py-4"><DialogTitle className="flex items-center gap-2 text-2xl"><PackagePlus className="text-[#ffc400]"/>{value.id?"แก้ไขสินค้า":"เพิ่มสินค้าใหม่"}</DialogTitle></DialogHeader>
+      <DialogHeader className="border-b border-white/10 px-5 py-4"><DialogTitle className="flex items-center gap-2 text-2xl"><PackagePlus className="text-[#ffc400]"/>{value.id?"แก้ไขสินค้า":"เพิ่มสินค้า"}</DialogTitle></DialogHeader>
       <div className="flex overflow-x-auto border-b border-white/10 px-3">{tabs.map(item=>{const Icon=item.icon;return <button key={item.id} onClick={()=>setTab(item.id)} className={`flex shrink-0 items-center gap-2 rounded-none border-b-2 px-4 py-3 text-sm font-bold ${tab===item.id?"border-[#ffc400] text-[#ffc400]":"border-transparent text-zinc-500"}`}><Icon className="h-4 w-4"/>{item.label}</button>})}</div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
         {tab==="general"&&<GeneralTab value={value} update={update}/>} 
@@ -168,13 +168,13 @@ function GeneralTab({value,update}:{value:Product;update:<K extends keyof Produc
     <Section title="ข้อมูลทั่วไป" description="ข้อมูลหลักที่ลูกค้าจะเห็นบนเว็บไซต์">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="SKU *"><Input value={value.id} onChange={e=>update("id",e.target.value.toUpperCase())} placeholder="CSA-H3-F01" className="border-white/15 bg-black/40 font-mono"/></Field>
-        <Field label="ชื่อสินค้า *"><Input value={value.name} onChange={e=>update("name",e.target.value)} placeholder="ชื่อสินค้าที่แสดง" className="border-white/15 bg-black/40"/></Field>
+        <Field label="ชื่อสินค้า *"><Input value={value.name} onChange={e=>update("name",e.target.value)} placeholder="กรอกชื่อสินค้า" className="border-white/15 bg-black/40"/></Field>
         <Field label="ชื่อสินค้า (English)"><Input value={value.nameEn??""} onChange={e=>update("nameEn",e.target.value)} placeholder="Product name" className="border-white/15 bg-black/40"/></Field>
-        <Field label="แบรนด์"><Input value={value.brand??""} onChange={e=>update("brand",e.target.value)} placeholder="เพิ่มแบรนด์เอง" className="border-white/15 bg-black/40"/></Field>
+        <Field label="แบรนด์"><Input value={value.brand??""} onChange={e=>update("brand",e.target.value)} placeholder="กรอกชื่อแบรนด์" className="border-white/15 bg-black/40"/></Field>
         <Field label="หมวดหมู่"><Input value={value.category??""} onChange={e=>update("category",e.target.value)} placeholder="เช่น โช้คอัพ, สปริง, อุปกรณ์เสริม" className="border-white/15 bg-black/40"/></Field>
         <Field label="ตำแหน่งสินค้า"><Input value={value.position??""} onChange={e=>update("position",e.target.value)} placeholder="เช่น หน้า, หลัง, ทั้งชุด" className="border-white/15 bg-black/40"/></Field>
         <Field label="ป้ายสินค้า"><Input value={value.tag} onChange={e=>update("tag",e.target.value)} placeholder="NEW / BEST SELLER" className="border-white/15 bg-black/40"/></Field>
-        <Field label="คำอธิบายสั้น (ไทย)"><Textarea value={value.shortDescription??""} onChange={e=>update("shortDescription",e.target.value)} placeholder="สรุปจุดเด่นสินค้า" className="min-h-20 border-white/15 bg-black/40"/></Field>
+        <Field label="คำอธิบายสั้น (ไทย)"><Textarea value={value.shortDescription??""} onChange={e=>update("shortDescription",e.target.value)} placeholder="กรอกรายละเอียดสินค้า" className="min-h-20 border-white/15 bg-black/40"/></Field>
         <Field label="คำอธิบายสั้น (English)"><Textarea value={value.shortDescriptionEn??""} onChange={e=>update("shortDescriptionEn",e.target.value)} placeholder="Short product description" className="min-h-20 border-white/15 bg-black/40"/></Field>
       </div>
     </Section>

@@ -5,14 +5,13 @@
   "claims": "Claims & tracking",
   "promotions": "Benefits",
   "admin": "Admin",
-  "search": "Search products, vehicle or product code",
+  "search": "Search product name or code",
   "cart": "Cart",
   "add": "Add to cart",
   "total": "Total",
-  "checkout": "Checkout",
+  "checkout": "Pay now",
   "all": "All vehicles",
   "fit": "Fits",
   "empty": "Your cart is empty",
   "login": "Sign in"
 }
-
