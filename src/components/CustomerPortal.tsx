@@ -71,10 +71,16 @@ export function CustomerPortal() {
   useEffect(()=>{localStorage.setItem("csa-cart",JSON.stringify(cart));localStorage.removeItem("csa-test-cart")},[cart]);
   useEffect(()=>{localStorage.setItem("csa-favorites",JSON.stringify(Array.from(favorites)))},[favorites]);
   useEffect(() => {
+    const loadCatalog=()=>{
     fetch("/api/products",{cache:"no-store"}).then(async response=>response.ok?response.json():Promise.reject()).then(data=>{
       if(Array.isArray(data.products)&&data.products.length)setCatalog(data.products);
     }).catch(()=>undefined);
-  }, [view]);
+    };
+    loadCatalog();
+    const refresh=()=>{if(document.visibilityState==="visible")loadCatalog()};
+    window.addEventListener("focus",loadCatalog);document.addEventListener("visibilitychange",refresh);
+    return()=>{window.removeEventListener("focus",loadCatalog);document.removeEventListener("visibilitychange",refresh)};
+  }, []);
   useEffect(()=>{fetch("/api/site-content",{cache:"no-store"}).then(r=>r.json()).then(d=>{if(d.content)setSiteContent(normalizeSiteContent(d.content))}).catch(()=>undefined)},[]);
   useEffect(() => {
     const context = (document as unknown as {
@@ -188,6 +194,7 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
   const makes=useMemo(()=>Array.from(new Set(allProducts.map(p=>p.vehicleMake).filter(Boolean) as string[])).sort(),[allProducts]);
   const models=useMemo(()=>Array.from(new Set(allProducts.filter(p=>!make||p.vehicleMake===make).map(p=>p.model).filter(Boolean))).sort(),[allProducts,make]);
   const years=useMemo(()=>{const values=new Set<number>();allProducts.filter(p=>(!make||p.vehicleMake===make)&&(!chosen||p.model===chosen)).forEach(p=>{if(p.yearFrom&&p.yearTo)for(let y=p.yearTo;y>=p.yearFrom;y--)values.add(y);else if(p.yearFrom)values.add(p.yearFrom)});return Array.from(values).sort((a,b)=>b-a).map(String)},[allProducts,make,chosen]);
+  const modelFilters=useMemo(()=>["ALL",...Array.from(new Set(allProducts.map(p=>p.model).filter(Boolean) as string[]))],[allProducts]);
   const clearFinder=()=>{setMake("");setChosen("");setYear("");setModel("ALL")};
   if(selected)return <ProductDetail product={selected} lang={lang} back={()=>{setSelected(null);window.scrollTo({top:0,behavior:"smooth"})}} favorite={favorites.has(selected.id)} toggleFavorite={()=>toggleFavorite(selected.id)} go={go} add={()=>add(selected.id)}/>;
   return <>
@@ -242,7 +249,7 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
     </section>
     <section id="product-catalog" className="scroll-mt-20 bg-[#f2f2f2] px-5 py-10 text-black sm:scroll-mt-24 sm:px-10 sm:py-14">
       <div className="mx-auto max-w-6xl"><div className="mb-6 flex items-center justify-between gap-3 border-b border-zinc-300 pb-5"><button onClick={()=>setFiltersOpen(x=>!x)} className="flex items-center gap-3 text-lg font-black"><SlidersHorizontal/>{lang==="th"?"แสดงตัวกรอง":"Filters"}<ChevronDown className={`h-4 w-4 transition ${filtersOpen?"rotate-180":""}`}/></button><div className="flex gap-2"><button aria-label="Grid view" onClick={()=>setLayout("grid")} className={`grid h-11 w-11 place-items-center rounded-xl ${layout==="grid"?"bg-black text-white":"bg-white text-zinc-400"}`}><Grid2X2/></button><button aria-label="List view" onClick={()=>setLayout("list")} className={`grid h-11 w-11 place-items-center rounded-xl ${layout==="list"?"bg-black text-white":"bg-white text-zinc-400"}`}><List/></button></div></div>
-      {filtersOpen&&<div className="mb-7 flex flex-wrap gap-2">{["ALL","HIACE 300","MAJESTY","NEW COMMUTER"].map(x=><button key={x} onClick={()=>setModel(x)} className={`rounded-full border px-4 py-2 text-sm font-bold ${model===x?"border-black bg-black text-white":"border-zinc-300 bg-white text-zinc-600"}`}>{x==="ALL"?t.all:x}</button>)}</div>}
+      {filtersOpen&&<div className="mb-7 flex flex-wrap gap-2">{modelFilters.map(x=><button key={x} onClick={()=>setModel(x)} className={`rounded-full border px-4 py-2 text-sm font-bold ${model===x?"border-black bg-black text-white":"border-zinc-300 bg-white text-zinc-600"}`}>{x==="ALL"?t.all:x}</button>)}</div>}
       <div className={layout==="grid"?"grid grid-cols-2 gap-3 lg:grid-cols-3":"space-y-4"}>{products.map(p=><ProductCard key={p.id} product={p} lang={lang} layout={layout} favorite={favorites.has(p.id)} toggleFavorite={()=>toggleFavorite(p.id)} details={()=>{setSelected(p);window.scrollTo({top:0,behavior:"smooth"})}}/>)}</div>
       {!products.length&&<div className="rounded-2xl bg-white p-10 text-center text-zinc-500">{lang==="th"?"ไม่พบสินค้าที่ตรงกับรถรุ่นนี้":"No products match this vehicle"}</div>}
       </div>

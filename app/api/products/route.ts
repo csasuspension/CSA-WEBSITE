@@ -51,6 +51,16 @@ function fromRow(row:ProductRow):Product{
     stock:row.stock,tag:row.tag,active:Boolean(row.active)};
 }
 
+function publicProduct(product:Product):Product{
+  const variants=Array.isArray(product.variants)?product.variants:[];
+  const prices=variants.map(item=>Number(item.price)).filter(value=>Number.isFinite(value)&&value>0);
+  const variantStock=variants.reduce((sum,item)=>sum+Math.max(0,Number(item.stock)||0),0);
+  return {...product,
+    price:Number(product.price)>0?Number(product.price):(prices.length?Math.min(...prices):0),
+    stock:Number(product.stock)>0?Number(product.stock):variantStock,
+  };
+}
+
 export async function GET(request:NextRequest){
   try{
     const includeInactive=request.nextUrl.searchParams.get("includeInactive")==="1";
@@ -58,8 +68,9 @@ export async function GET(request:NextRequest){
     await ensureExtendedSchema();
     const result=await db().prepare("SELECT sku,name,vehicle_make,vehicle_model,model_number,category,position,year_from,year_to,price,stock,tag,active,product_data_json,updated_at FROM catalog_products ORDER BY updated_at DESC").all<ProductRow>();
     const overrides=new Map(result.results.map(row=>[row.sku,fromRow(row)]));
-    const merged=[...defaults.map(item=>overrides.get(item.id)??item),...result.results.filter(row=>!defaults.some(item=>item.id===row.sku)).map(fromRow)];
-    return NextResponse.json({products:merged.filter(item=>includeInactive||item.active!==false)});
+    const saved=result.results.map(fromRow);
+    const merged=[...saved,...defaults.filter(item=>!overrides.has(item.id))];
+    return NextResponse.json({products:merged.filter(item=>includeInactive||item.active!==false).map(item=>includeInactive?item:publicProduct(item))});
   }catch(error){console.error("products:list",error);return NextResponse.json({error:"Product data is temporarily unavailable"},{status:503})}
 }
 
