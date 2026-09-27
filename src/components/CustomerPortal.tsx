@@ -66,6 +66,8 @@ export function CustomerPortal() {
       if(Array.isArray(savedFavorites))setFavorites(new Set(savedFavorites));
     } catch {}
     fetch("/api/auth/me",{cache:"no-store"}).then(r=>r.json()).then(data=>{setLoggedIn(Boolean(data.authenticated));setLoginMethod(data.authenticated?"line":null)}).catch(()=>undefined);
+    const login=new URLSearchParams(window.location.search).get("login");
+    if(login){window.setTimeout(()=>setToast(login==="success"?(saved==="en"?"Signed in successfully":"เข้าสู่ระบบสำเร็จ"):(saved==="en"?"LINE sign-in failed. Please try again.":"เข้าสู่ระบบ LINE ไม่สำเร็จ กรุณาลองใหม่")),100);window.history.replaceState({},"",window.location.pathname+window.location.hash)}
   }, []);
   useEffect(()=>{localStorage.setItem("csa-cart",JSON.stringify(cart));localStorage.removeItem("csa-test-cart")},[cart]);
   useEffect(()=>{localStorage.setItem("csa-favorites",JSON.stringify(Array.from(favorites)))},[favorites]);
