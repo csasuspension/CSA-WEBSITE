@@ -14,7 +14,7 @@ export async function POST(request:NextRequest){
     if(file.size>12*1024*1024)return NextResponse.json({error:"File exceeds 12 MB"},{status:413});
     const safe=(file.name||"evidence").replace(/[^a-zA-Z0-9._-]+/g,"-").slice(-80)||"evidence";
     const key=`evidence/${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}-${safe}`;
-    await env.BUCKET.put(key,await file.arrayBuffer(),{httpMetadata:{contentType:file.type},customMetadata:{originalName:file.name,testMode:"true"}});
+    await env.BUCKET.put(key,await file.arrayBuffer(),{httpMetadata:{contentType:file.type},customMetadata:{originalName:file.name}});
     return NextResponse.json({ok:true,key,name:file.name},{status:201});
   }catch(error){console.error("evidence:upload",error);return NextResponse.json({error:"Upload failed"},{status:503})}
 }
