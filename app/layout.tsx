@@ -6,12 +6,13 @@ export const metadata: Metadata = {
   description: "โช้คอัพและช่วงล่างสมรรถนะสูงสำหรับรถตู้ พร้อมบริการรับประกันและค้นหาตัวแทนจำหน่าย CSA",
   icons: {
     icon: [
-      { url: "/csa-favicon-v13-48.png", type: "image/png", sizes: "48x48" },
-      { url: "/csa-favicon-v13-96.png", type: "image/png", sizes: "96x96" },
-      { url: "/csa-icon-v12-512.png", type: "image/png", sizes: "512x512" },
+      { url: "/csa-favicon-v14.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/csa-favicon-v14-48.png", type: "image/png", sizes: "48x48" },
+      { url: "/csa-favicon-v14-96.png", type: "image/png", sizes: "96x96" },
+      { url: "/csa-icon-v14-512.png", type: "image/png", sizes: "512x512" },
     ],
     shortcut: "/favicon.ico",
-    apple: "/csa-apple-touch-v12.png",
+    apple: "/csa-apple-touch-v14.png",
   },
   manifest: "/site.webmanifest",
 };

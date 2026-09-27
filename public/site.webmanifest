@@ -6,9 +6,10 @@
   "background_color": "#090909",
   "theme_color": "#ffc400",
   "icons": [
-    {"src":"/csa-favicon-v13-48.png","sizes":"48x48","type":"image/png"},
-    {"src":"/csa-favicon-v13-96.png","sizes":"96x96","type":"image/png"},
-    {"src":"/csa-icon-v12-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},
-    {"src":"/csa-apple-touch-v12.png","sizes":"180x180","type":"image/png"}
+    {"src":"/csa-favicon-v14.svg","sizes":"any","type":"image/svg+xml","purpose":"any"},
+    {"src":"/csa-favicon-v14-48.png","sizes":"48x48","type":"image/png"},
+    {"src":"/csa-favicon-v14-96.png","sizes":"96x96","type":"image/png"},
+    {"src":"/csa-icon-v14-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},
+    {"src":"/csa-apple-touch-v14.png","sizes":"180x180","type":"image/png"}
   ]
 }
