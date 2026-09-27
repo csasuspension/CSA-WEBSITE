@@ -233,7 +233,7 @@ function Shop({lang,t,model,setModel,products,allProducts,content,add,go,favorit
               <VehicleFinderSelect number="01" value={make} setValue={value=>{setMake(value);setChosen("");setYear("")}} options={makes} label={lang==="th"?"เลือกแบรนด์":"Select brand"}/>
               <VehicleFinderSelect number="02" value={chosen} setValue={value=>{setChosen(value);setYear("")}} options={models} disabled={!make} label={lang==="th"?"เลือกรุ่นรถ":"Select vehicle model"}/>
               <VehicleFinderSelect number="03" value={year} setValue={setYear} options={years} disabled={!chosen} label={lang==="th"?"ปีที่ผลิต":"Production year"}/>
-              <Button disabled={!make||!chosen||!year} onClick={()=>{setModel(chosen);window.setTimeout(()=>document.getElementById("product-catalog")?.scrollIntoView({behavior:"smooth"}),100)}} className="mt-2 h-14 w-full rounded-2xl bg-[#ffc400] text-base font-black text-black shadow-[0_6px_0_#6f5600] transition hover:-translate-y-0.5 hover:bg-white disabled:shadow-none"><Search className="h-5 w-5"/>{lang==="th"?"ค้นหาโช้คอัพที่ตรงรุ่น":"Find matching shocks"}</Button>
+              <Button disabled={!make||!chosen||!year} onClick={()=>{setModel(chosen);window.setTimeout(()=>document.getElementById("product-catalog")?.scrollIntoView({behavior:"smooth"}),100)}} className="mt-2 h-12 w-fit rounded-xl bg-[#ffc400] px-6 font-black text-black shadow-[0_4px_0_#6f5600] transition hover:-translate-y-0.5 hover:bg-white disabled:shadow-none"><Search className="h-5 w-5"/>{lang==="th"?"ค้นหา":"Search"}</Button>
             </div>
           </div>
         </div>
@@ -354,7 +354,7 @@ function Cart({lang,t,lines,total,close,change,checkout}:any) {
 
 function Login({open,setOpen,lang}:{open:boolean;setOpen:(value:boolean)=>void;lang:Lang}) {
   return <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto border-white/10 bg-[#121212] pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-white sm:max-w-md"><DialogHeader><DialogTitle className="font-display text-3xl uppercase">{lang==="th"?"เข้าสู่ระบบสมาชิก":"Member sign in"}</DialogTitle></DialogHeader>
-    <div className="space-y-4"><p className="text-sm text-zinc-400">{lang==="th"?"เข้าสู่ระบบด้วยบัญชี LINE เพื่อดูสินค้า คำสั่งซื้อ การรับประกัน และสถานะเคลม":"Sign in with LINE to access orders, warranties and claims."}</p><Button className="h-12 w-full rounded-xl bg-[#06c755] text-white hover:bg-[#05b64d]" onClick={()=>{window.location.href="/api/auth/line"}}><MessageCircle/>LINE Login</Button><p className="text-center text-xs text-zinc-600">{lang==="th"?"ระบบจะเชื่อมต่อกับ LINE อย่างปลอดภัย":"Secure sign-in via LINE Login"}</p></div>
+    <div className="space-y-4"><p className="text-sm text-zinc-400">{lang==="th"?"เข้าสู่ระบบเพื่อดูคำสั่งซื้อ การรับประกัน และสถานะเคลม":"Sign in to access orders, warranties and claims."}</p><Button className="h-11 w-fit rounded-xl bg-[#06c755] px-5 text-white hover:bg-[#05b64d]" onClick={()=>{window.location.href="/api/auth/line"}}><MessageCircle/>{lang==="th"?"เข้าสู่ระบบด้วย LINE":"LINE Login"}</Button></div>
   </DialogContent></Dialog>;
 }
 

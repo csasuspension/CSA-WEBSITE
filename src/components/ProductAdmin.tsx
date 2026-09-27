@@ -89,7 +89,7 @@ export function ProductAdmin(){
   return <div>
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div><p className="text-xs font-bold tracking-[.18em] text-[#ffc400]">PRODUCT MANAGEMENT</p><h2 className="mt-1 text-3xl font-black">สินค้า</h2><p className="mt-2 text-sm text-zinc-500">จัดการข้อมูลที่แสดงบนหน้า Customer UI: รายการสินค้า รายละเอียด ข้อมูลจำเพาะ และการรับประกัน</p></div>
-      <Button onClick={()=>setEditing(createProduct())} className="bg-white text-black hover:bg-zinc-200"><Plus/>เพิ่มสินค้า</Button>
+      <Button onClick={()=>setEditing(createProduct())} className="bg-[#ffc400] font-black text-black hover:bg-[#ffd43b]"><Plus/>เพิ่มสินค้า</Button>
     </div>
     <div className="mt-5 grid gap-3 sm:grid-cols-3">
       <Stat icon={Boxes} value={String(items.length)} label="สินค้าทั้งหมด"/>
@@ -114,7 +114,7 @@ export function ProductAdmin(){
         </tr>)}</tbody>
       </table>{!visible.length&&<div className="p-10 text-center text-sm text-zinc-500">ไม่พบสินค้าที่ค้นหา</div>}</div>}
     </section>
-    <div className="mt-5 flex justify-center"><Button onClick={()=>setEditing(createProduct())} className="min-h-12 rounded-xl bg-white px-7 font-black text-black"><Plus/>เพิ่มสินค้าใหม่</Button></div>
+    <div className="mt-5"><Button onClick={()=>setEditing(createProduct())} className="h-10 rounded-xl bg-[#ffc400] px-4 font-black text-black hover:bg-[#ffd43b]"><Plus/>เพิ่มสินค้า</Button></div>
     {message&&<p className="mt-3 text-sm font-bold text-[#ffc400]">{message}</p>}
     <ProductDialog value={editing} setValue={setEditing} saving={saving} save={()=>void save()}/>
   </div>;
@@ -142,7 +142,7 @@ function ProductDialog({value,setValue,saving,save}:{value:Product|null;setValue
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-[#0d0d0d] px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <Button onClick={previous} disabled={activeIndex===0} variant="outline" className="border-white/15 bg-transparent text-white"><ChevronLeft/>ย้อนกลับ</Button>
-        <div className="flex gap-2"><Button onClick={()=>setValue(null)} variant="outline" className="border-white/15 bg-transparent text-white">ยกเลิก</Button>{activeIndex<tabs.length-1?<Button onClick={next} className="bg-white text-black hover:bg-zinc-200">ถัดไป<ChevronRight/></Button>:<Button onClick={save} disabled={saving||!value.id.trim()||!value.name.trim()} className="bg-white text-black hover:bg-zinc-200">{saving&&<Loader2 className="animate-spin"/>}บันทึกสินค้า</Button>}</div>
+        <div className="flex gap-2"><Button onClick={()=>setValue(null)} variant="outline" className="border-white/15 bg-transparent text-white">ยกเลิก</Button>{activeIndex<tabs.length-1?<Button onClick={next} className="bg-[#ffc400] font-black text-black hover:bg-[#ffd43b]">ถัดไป<ChevronRight/></Button>:<Button onClick={save} disabled={saving||!value.id.trim()||!value.name.trim()} className="bg-[#ffc400] font-black text-black hover:bg-[#ffd43b]">{saving&&<Loader2 className="animate-spin"/>}บันทึก</Button>}</div>
       </div>
     </DialogContent>
   </Dialog>;
@@ -180,7 +180,7 @@ function GeneralTab({value,update}:{value:Product;update:<K extends keyof Produc
     </Section>
     <Section title="รูปภาพสินค้า" description="อัปโหลดรูปจากเครื่อง หรือวางลิงก์รูปภาพ แล้วจัดลำดับได้เอง">
       <div className="space-y-3">{images.map((url,index)=><div key={`${url}-${index}`} className="grid gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-[72px_1fr_auto] sm:items-center">{url?<img src={url} alt="" className="h-16 w-16 rounded-lg bg-white object-contain p-1"/>:<span className="grid h-16 w-16 place-items-center rounded-lg bg-white/5"><ImagePlus className="h-5 w-5 text-[#ffc400]"/></span>}<div><Input value={url} onChange={e=>update("imageUrls",images.map((x,i)=>i===index?e.target.value:x))} placeholder="https://..." className="border-white/15 bg-black/40"/><div className="mt-2 flex gap-2"><Button type="button" disabled={index===0} onClick={()=>{const next=[...images];[next[index-1],next[index]]=[next[index],next[index-1]];update("imageUrls",next)}} size="sm" variant="outline" className="border-white/15 bg-transparent text-white">เลื่อนขึ้น</Button><Button type="button" disabled={index===images.length-1} onClick={()=>{const next=[...images];[next[index+1],next[index]]=[next[index],next[index+1]];update("imageUrls",next)}} size="sm" variant="outline" className="border-white/15 bg-transparent text-white">เลื่อนลง</Button></div></div><Button type="button" onClick={()=>update("imageUrls",images.filter((_,i)=>i!==index))} size="icon" variant="outline" className="border-red-500/20 text-red-400"><Trash2/></Button></div>)}</div>
-      <div className="mt-3 flex flex-wrap gap-2"><label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-black"><ImagePlus className="h-4 w-4"/>{uploading?"กำลังอัปโหลด…":"อัปโหลดรูปสินค้า"}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" disabled={uploading} onChange={e=>{void upload(e.target.files?.[0]);e.currentTarget.value=""}}/></label><Button type="button" onClick={()=>update("imageUrls",[...images,""])} variant="outline" className="border-white/15 bg-transparent text-white"><Plus/>เพิ่มด้วยลิงก์</Button></div>
+      <div className="mt-3 flex flex-wrap gap-2"><label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#ffc400] px-4 text-sm font-black text-black hover:bg-[#ffd43b]"><ImagePlus className="h-4 w-4"/>{uploading?"กำลังอัปโหลด…":"อัปโหลดรูป"}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" disabled={uploading} onChange={e=>{void upload(e.target.files?.[0]);e.currentTarget.value=""}}/></label><Button type="button" onClick={()=>update("imageUrls",[...images,""])} variant="outline" className="border-white/15 bg-transparent text-white"><Plus/>เพิ่มลิงก์</Button></div>
       {uploadError&&<p className="mt-2 text-sm font-bold text-red-400">{uploadError}</p>}
     </Section>
     <div className="flex items-center justify-between rounded-xl border border-white/10 p-4"><div><p className="font-bold">แสดงสินค้าบนเว็บไซต์</p><p className="text-xs text-zinc-500">ปิดเพื่อซ่อนสินค้าโดยไม่ลบข้อมูล</p></div><Switch checked={value.active!==false} onCheckedChange={checked=>update("active",checked)}/></div>
